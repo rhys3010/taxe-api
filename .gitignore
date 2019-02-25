@@ -26,6 +26,9 @@ yarn-error.log*
 .env
 .env.*
 
+# DB Volumes
+bin/data/
+
 #Build generated
 dist/
 build/
