@@ -1,5 +1,5 @@
 # Use Dockerfile.production as base
-FROM taxe
+FROM taxe-api_taxe
 ENV NODE_END dev
 RUN npm install && npm install -g mocha
 CMD mocha test/allTests.js --exit
