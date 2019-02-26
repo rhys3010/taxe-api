@@ -1,6 +1,6 @@
 (logo here)
 
-# Tax-E REST API
+# Tax-E REST API &middot; [![Build Status](https://travis-ci.org/rhys3010/taxe-api.svg?branch=master)](https://travis-ci.org/rhys3010/taxe-api)
 
 An express.js REST API that is used to serve the [Tax-E Android App](link here).
 
