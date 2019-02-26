@@ -28,7 +28,7 @@ app.use(morgan('dev'));
 // Error Handler Middleware
 //app.use(errorHandler);
 
-// Get Routes
+// Use routes.js file to declare app's routes
 app.use('/api/v1', routes);
 
 module.exports = app;

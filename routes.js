@@ -7,11 +7,19 @@
 
 'use strict';
 
-const routes = require('express').Router();
+const router = require('express').Router();
+const usersRoute = require('./routes/users');
 
-// TEMP
-routes.get('/', (req, res) => {
-  res.status(200).json({message: 'Hello World!'});
+/**
+  * Default route, present welcome message to api
+*/
+router.get('/', function(req, res){
+  res.json({"message": "Welcome to the Tax-E REST API"});
 });
 
-module.exports = routes;
+/**
+  * Users route
+*/
+router.use('/users', usersRoute);
+
+module.exports = router;
