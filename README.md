@@ -9,7 +9,8 @@ An express.js REST API that is used to serve the [Tax-E Android App](link here).
 Simply build and run the docker image.
 
 ```shell
-docker-compose up
+npm run-script build
+npm run-script start
 ```
 
 ## Developing
@@ -18,10 +19,7 @@ docker-compose up
 [Node.js](https://nodejs.org/en/), [Express.js](https://expressjs.com/), [MongoDB](https://www.mongodb.com/)
 
 ### Prerequisites
-[Docker](https://www.docker.com/)
-
-## Building ##
-Coming Soon
+[Docker](https://www.docker.com/), Docker-Compose
 
 ## Versioning
 Project uses [Semantic Versioning 2.0.0](https://semver.org/)
@@ -30,7 +28,10 @@ Project uses [Semantic Versioning 2.0.0](https://semver.org/)
 Coming Soon
 
 ## Tests
-Coming Soon
+Run all chai tests in mocha environment using the following command
+```shell
+npm run-script test
+```
 
 ## Api Reference ##
 Coming Soon

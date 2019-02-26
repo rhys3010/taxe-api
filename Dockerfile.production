@@ -1,0 +1,20 @@
+# Get official base image for node.js and npm
+FROM node:latest
+
+# Copy Application files
+RUN mkdir -p /usr/src/taxe-api
+WORKDIR /usr/src/taxe-api
+COPY package.json /usr/src/taxe-api
+
+# TODO: Environment variables
+ENV NODE_ENV prod
+
+# Download required packages
+RUN npm install
+COPY . /usr/src/taxe-api
+
+# Expose ports
+EXPOSE 3000
+
+# Run node.js
+CMD node ./bin/www

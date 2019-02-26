@@ -1,11 +1,11 @@
 version: "3"
 services:
   taxe:
-    container_name: taxe-api-container
+    container_name: taxe-api-test-container
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile.production
+      dockerfile: Dockerfile.test
     ports:
       - "3000:3000"
     links:
@@ -17,4 +17,4 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./bin/data:/data/db
+      - ./bin/test/data:/data/db

@@ -28,6 +28,7 @@ yarn-error.log*
 
 # DB Volumes
 bin/data/
+bin/test/
 
 #Build generated
 dist/
