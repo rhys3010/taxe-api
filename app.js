@@ -12,7 +12,7 @@ const app = express();
 const routes = require('./routes');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-//const errorHandler = require('./app/middleware/error-handler');
+const errorHandler = require('./middlewares/error-handler');
 const morgan = require('morgan');
 
 // Parse x-www-form-urlencoded
@@ -25,10 +25,10 @@ app.use(cors());
 // Log Requests to console using morgan
 app.use(morgan('dev'));
 
-// Error Handler Middleware
-//app.use(errorHandler);
-
 // Use routes.js file to declare app's routes
 app.use('/api/v1', routes);
+
+// Enable Error Handler Middleware
+app.use(errorHandler);
 
 module.exports = app;
