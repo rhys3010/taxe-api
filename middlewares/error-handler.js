@@ -22,11 +22,11 @@ function errorHandler(error, req, res, next){
   /**
     * Invalid Token Error
   */
-  if(error.name == "InvalidTokenError" || error.name == "UnauthorizedError"){
-    return res.status(401).json({
-      "code": 2,
+  if(error.name == "InvalidTokenError" || error.name == "UnauthorizedError" || error.name == "JsonWebTokenError"){
+    return res.status(403).json({
+      "code": 1,
       "message": "Token Validation Error",
-      "description": "Token could not be validated."
+      "description": "Invalid Token Provided"
     });
   }
 
@@ -34,10 +34,21 @@ function errorHandler(error, req, res, next){
     * Token Expiry Error
   */
   if(error.name == "TokenExpiredError"){
-    return res.status(401).json({
-      "code": 3,
+    return res.status(403).json({
+      "code": 2,
       "message": "Token Expired Error",
       "description": "The provided token has expired."
+    });
+  }
+
+  /**
+    * Token not found error
+  */
+  if(error.name == "MissingTokenError"){
+    return res.status(401).json({
+      "code": 3,
+      "message": "Missing Token Error",
+      "description": "Could not find auth token in request header."
     });
   }
 
@@ -84,7 +95,7 @@ function errorHandler(error, req, res, next){
     * Default case, internal server error with details of error
   */
   return res.status(500).json({
-    "code": 1,
+    "code": 0,
     "message": "Internal Server Occured",
     "description": error.message
   });

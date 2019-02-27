@@ -10,12 +10,13 @@
 
 const router = require('express').Router();
 const userController = require('../controllers/user');
+const auth = require('../middlewares/auth')
 
 /**
   * GET /users
   * List all users
 */
-router.get('/', function(req, res){
+router.get('/', auth, function(req, res, next){
   res.json({"message": "show all users here"});
 });
 
@@ -35,7 +36,7 @@ router.post('/login', userController.authenticate);
   * GET /users/:id
   * View individual user record
 */
-router.get('/:id', function(req, res){
+router.get('/:id', function(req, res, next){
   res.json({"message": "show user info here"});
 });
 
@@ -43,7 +44,7 @@ router.get('/:id', function(req, res){
   * PUT /users/:id
   * Edit individual user record
 */
-router.put('/:id', function(req, res){
+router.put('/:id', function(req, res, next){
   res.json({"message": "edit user info here"});
 });
 

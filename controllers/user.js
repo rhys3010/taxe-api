@@ -6,7 +6,7 @@
   * @version 0.1
 */
 
-'use static';
+'use strict';
 
 const userService = require('../services/user');
 const config = require('../config.json');
