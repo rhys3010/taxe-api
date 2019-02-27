@@ -25,3 +25,15 @@ describe('/GET default', () => {
     });
   });
 });
+
+// Failing Test
+describe('/GET users', () => {
+  it('It shouldnt return HTTP status 200', (done) => {
+    chai.request(app)
+      .get('/api/v1/users')
+      .end((err, res) => {
+        res.should.have.status(200);
+      done();
+    });
+  });
+});

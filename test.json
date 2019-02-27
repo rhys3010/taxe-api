@@ -1,0 +1,1 @@
+{"jwtSecret": "defaultsecret", "jwtExpiry": 300, "mongoURI": "mongodb://mongo:27017/taxe-server"}
