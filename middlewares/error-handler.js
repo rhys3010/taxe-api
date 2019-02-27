@@ -11,6 +11,11 @@
 /**
   * Based on 'error' param, return json with details of error
   * and return correct HTTP status code
+  * @param error - The error received by controller
+  * @param req - The HTTP request
+  * @param res - The HTTP response object
+  * @param next -  The next middleware to be executed.
+  * @returns - HTTP response object with HTTP status code and JSON output.
 */
 function errorHandler(error, req, res, next){
 
@@ -20,7 +25,8 @@ function errorHandler(error, req, res, next){
   if(error.name == "InvalidTokenError" || error.name == "UnauthorizedError"){
     return res.status(401).json({
       "code": 2,
-      "message": "Token Validation Failed"
+      "message": "Token Validation Error",
+      "description": "Token could not be validated."
     });
   }
 
@@ -30,7 +36,8 @@ function errorHandler(error, req, res, next){
   if(error.name == "TokenExpiredError"){
     return res.status(401).json({
       "code": 3,
-      "message": "Token Expired"
+      "message": "Token Expired Error",
+      "description": "The provided token has expired."
     });
   }
 
@@ -40,13 +47,37 @@ function errorHandler(error, req, res, next){
   if(error.name == "NoUsersFoundError"){
     return res.status(404).json({
       "code": 4,
-      "message": "No Users Found"
+      "message": "User Not Found Error",
+      "description": "The email you entered does not match any current records."
+    });
+  }
+
+  /**
+    * User already exists error
+  */
+  if(error.name == "UserAlreadyExistsError"){
+    return res.status(400).json({
+      "code": 5,
+      "message": "User Already Exists Error",
+      "description": error.message
+    });
+  }
+
+  /**
+    * Authentication Failure Error
+  */
+  if(error.name == "AuthenticationFailedError"){
+    return res.status(403).json({
+      "code": 6,
+      "message": "Authentication Error",
+      "description": "Invalid Email or Password"
     });
   }
 
   /**
     * Validation Error
     * TODO express-validator
+    * TODO user already exists
   */
 
   /**
@@ -56,7 +87,6 @@ function errorHandler(error, req, res, next){
     "code": 1,
     "message": "Internal Server Occured",
     "description": error.message
-
   });
 }
 

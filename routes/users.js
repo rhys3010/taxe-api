@@ -9,8 +9,7 @@
 'use strict';
 
 const router = require('express').Router();
-
-// TODO: Link up controller
+const userController = require('../controllers/user');
 
 /**
   * GET /users
@@ -24,17 +23,13 @@ router.get('/', function(req, res){
   * POST /users
   * Create new user
 */
-router.post('/', function(req, res){
-  res.json({"message": "create new user here"});
-});
+router.post('/', userController.register);
 
 /**
   * POST /users/login
   * Authenticate with basic auth and return token if successful
 */
-router.post('/login', function(req, res){
-  res.json({"message": "login user here"});
-});
+router.post('/login', userController.authenticate);
 
 /**
   * GET /users/:id

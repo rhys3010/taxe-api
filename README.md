@@ -25,7 +25,12 @@ npm run-script start
 Project uses [Semantic Versioning 2.0.0](https://semver.org/)
 
 ## Configuration ##
-Coming Soon
+
+### Environment Variables ###
+If using environment variables, set MONGO_URI to the connection URI of your mongodb database. Set JWT_EXPIRY to the amount of time (in seconds) before the jwt token expires. Set JWT_SECRET to your jwt secret key.
+
+### Configuration File ###
+If using a config file, rename 'config.sample.json' to 'config.json', then input necessary values.
 
 ## Tests
 Run all chai tests in mocha environment using the following command
