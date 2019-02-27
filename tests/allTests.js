@@ -18,7 +18,7 @@ chai.use(chaiHttp);
 describe('/GET default', () => {
   it('It should return HTTP status 200', (done) => {
       chai.request(app)
-        .get('/api/v1/b')
+        .get('/api/v1')
         .end((err, res) => {
           res.should.have.status(200);
         done();

@@ -1,17 +1,18 @@
 version: "3"
 services:
-  taxe:
+  app:
+    container_name: app
     restart: always
     build:
       context: .
       dockerfile: Dockerfile.production
-    image: taxe_api
     ports:
       - "3000:3000"
     links:
       - mongo
 
   mongo:
+    container_name: mongodb
     image: mongo
     ports:
       - "27017:27017"

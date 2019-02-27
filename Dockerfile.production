@@ -2,16 +2,16 @@
 FROM node:latest
 
 # Copy Application files
-RUN mkdir -p /usr/src/taxe-api
-WORKDIR /usr/src/taxe-api
-COPY package.json /usr/src/taxe-api
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+COPY package.json /usr/src/app
 
 # TODO: Environment variables
 ENV NODE_ENV prod
 
 # Download required packages
 RUN npm install
-COPY . /usr/src/taxe-api
+COPY . /usr/src/app
 
 # Expose ports
 EXPOSE 3000

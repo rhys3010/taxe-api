@@ -1,6 +1,7 @@
 version: "3"
 services:
-  taxe:
+  app-test:
+    container_name: app-test
     restart: always
     build:
       context: .
@@ -11,6 +12,7 @@ services:
       - mongo
 
   mongo:
+    container_name: mongodb
     image: mongo
     ports:
       - "27017:27017"
