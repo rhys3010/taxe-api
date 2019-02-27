@@ -8,7 +8,7 @@ before_install:
   - sudo service mysql stop
 
 install:
-  - ./scripts/create-config.sh 
+  - sh scripts/create-config.sh
 
 script:
   - npm test
