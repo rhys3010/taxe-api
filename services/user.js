@@ -116,7 +116,7 @@ async function getAll(){
   const users = User.find({}).select("name");
 
   // If no users were found, throw 404
-  if(!users.length){
+  if(users.length == 0){
     const error = new Error();
     error.name = "NoUsersFoundError";
     throw error;

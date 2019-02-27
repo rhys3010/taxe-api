@@ -3,6 +3,7 @@ services:
   app:
     container_name: app
     restart: always
+    image: taxe/app
     build:
       context: .
       dockerfile: Dockerfile.production

@@ -59,7 +59,7 @@ function errorHandler(error, req, res, next){
     return res.status(404).json({
       "code": 4,
       "message": "User Not Found Error",
-      "description": "No could be found."
+      "description": "No users could be found."
     });
   }
 

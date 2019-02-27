@@ -7,8 +7,5 @@ before_install:
   - sudo /etc/init.d/postgresql stop
   - sudo service mysql stop
 
-install:
-  - npm run build
-
 script:
   - npm test
