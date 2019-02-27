@@ -8,7 +8,7 @@ before_install:
   - sudo service mysql stop
 
 install:
-  - echo '{"jwtSecret": "defaultsecret", "jwtExpiry": 300, "mongoURI": "mongodb://mongo:27017/taxe-server"}' >> config.json
+  - ./scripts/create-config.sh 
 
 script:
   - npm test
