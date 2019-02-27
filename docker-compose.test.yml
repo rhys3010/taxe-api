@@ -5,7 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    image: taxe_api
     ports:
       - "3000:3000"
     links:
@@ -15,5 +14,3 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-    volumes:
-      - ./bin/data/test:/data/db

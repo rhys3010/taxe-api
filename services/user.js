@@ -21,7 +21,8 @@ const User = db.User;
 module.exports = {
   authenticate,
   create,
-  getByEmail
+  getByEmail,
+  getAll
 };
 
 /**
@@ -103,4 +104,24 @@ async function getByEmail(email){
   // Return user and omit password
   const {hashed_password, ...userWithoutPassword} = user.toObject();
   return userWithoutPassword;
+}
+
+/**
+  * Get all registered users from mongo DB
+  * Print only name and id
+  * @returns - A list of users
+*/
+async function getAll(){
+  // Get all users
+  const users = User.find({}).select("name");
+
+  // If no users were found, throw 404
+  if(!users.length){
+    const error = new Error();
+    error.name = "NoUsersFoundError";
+    throw error;
+    return;
+  }
+
+  return users;
 }

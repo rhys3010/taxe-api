@@ -15,7 +15,9 @@ const auth = require('basic-auth');
 
 module.exports = {
   authenticate,
-  register
+  register,
+  getByEmail,
+  getAll
 };
 
 /**
@@ -54,4 +56,30 @@ function register(req, res, next){
   userService.create(req.body)
     .then(() => res.status(201).json({message: "Successfully Registered"}))
     .catch(err => next(err));
+}
+
+/**
+  * Searches for and returns a user based on provided email address
+  * @param req - HTTP request object
+  * @param res - HTTP repsonse object
+  * @param next - next middleware to be executed
+*/
+function getByEmail(req, res, next){
+  userService.getByEmail(req.params.email)
+    .then(user => res.status(200).json(user))
+    .catch(err => next(err));
+
+}
+
+/**
+  * Retrieves all ussers and prints their name and id
+  * @param req - HTTP request object
+  * @param res - HTTP repsonse object
+  * @param next - next middleware to be executed
+*/
+function getAll(req, res, next){
+  userService.getAll()
+    .then(users => res.status(200).json(users))
+    .catch(err => next(err));
+
 }

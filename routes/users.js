@@ -16,9 +16,7 @@ const auth = require('../middlewares/auth')
   * GET /users
   * List all users
 */
-router.get('/', auth, function(req, res, next){
-  res.json({"message": "show all users here"});
-});
+router.get('/', auth, userController.getAll);
 
 /**
   * POST /users
@@ -36,15 +34,13 @@ router.post('/login', userController.authenticate);
   * GET /users/:id
   * View individual user record
 */
-router.get('/:id', function(req, res, next){
-  res.json({"message": "show user info here"});
-});
+router.get('/:email', auth, userController.getByEmail);
 
 /**
   * PUT /users/:id
   * Edit individual user record
 */
-router.put('/:id', function(req, res, next){
+router.put('/:email', function(req, res, next){
   res.json({"message": "edit user info here"});
 });
 

@@ -59,7 +59,7 @@ function errorHandler(error, req, res, next){
     return res.status(404).json({
       "code": 4,
       "message": "User Not Found Error",
-      "description": "The email you entered does not match any current records."
+      "description": "No could be found."
     });
   }
 
