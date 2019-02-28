@@ -69,7 +69,6 @@ async function create(userInfo){
     const error = new Error('User Already Exists with Email "' + userInfo.email + '"');
     error.name = "UserAlreadyExistsError";
     throw error;
-    return;
   }
 
   // Create a new user
@@ -98,7 +97,6 @@ async function getByEmail(email){
     const error = new Error();
     error.name = "NoUsersFoundError";
     throw error;
-    return;
   }
 
   // Return user and omit password
@@ -116,11 +114,10 @@ async function getAll(){
   const users = User.find({}).select("name");
 
   // If no users were found, throw 404
-  if(users.length == 0){
+  if(users.length === 0){
     const error = new Error();
     error.name = "NoUsersFoundError";
     throw error;
-    return;
   }
 
   return users;

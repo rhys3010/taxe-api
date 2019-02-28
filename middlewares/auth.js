@@ -27,7 +27,6 @@ function auth(req, res, next){
     const error = new Error();
     error.name = "MissingTokenError";
     throw error;
-    return
   }else{
     // Remove 'bearer'
     const token = authHeader.split(" ")[1];
@@ -38,7 +37,6 @@ function auth(req, res, next){
       const error = new Error();
       error.name = "InvalidTokenError";
       throw error;
-      return;
       // If token is valid
     }else{
       // Get payload from token

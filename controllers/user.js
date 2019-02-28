@@ -40,7 +40,6 @@ function authenticate(req, res, next){
         const error = new Error();
         error.name = "AuthenticationFailedError";
         throw error;
-        return;
       }
     }).catch(err => next(err));
 }

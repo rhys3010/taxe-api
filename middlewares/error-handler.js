@@ -22,7 +22,7 @@ function errorHandler(error, req, res, next){
   /**
     * Invalid Token Error
   */
-  if(error.name == "InvalidTokenError" || error.name == "UnauthorizedError" || error.name == "JsonWebTokenError"){
+  if(error.name === "InvalidTokenError" || error.name === "UnauthorizedError" || error.name === "JsonWebTokenError"){
     return res.status(403).json({
       "code": 1,
       "message": "Token Validation Error",
@@ -33,7 +33,7 @@ function errorHandler(error, req, res, next){
   /**
     * Token Expiry Error
   */
-  if(error.name == "TokenExpiredError"){
+  if(error.name === "TokenExpiredError"){
     return res.status(403).json({
       "code": 2,
       "message": "Token Expired Error",
@@ -44,7 +44,7 @@ function errorHandler(error, req, res, next){
   /**
     * Token not found error
   */
-  if(error.name == "MissingTokenError"){
+  if(error.name === "MissingTokenError"){
     return res.status(401).json({
       "code": 3,
       "message": "Missing Token Error",
@@ -55,7 +55,7 @@ function errorHandler(error, req, res, next){
   /**
     * No users found Error
   */
-  if(error.name == "NoUsersFoundError"){
+  if(error.name === "NoUsersFoundError"){
     return res.status(404).json({
       "code": 4,
       "message": "User Not Found Error",
@@ -66,7 +66,7 @@ function errorHandler(error, req, res, next){
   /**
     * User already exists error
   */
-  if(error.name == "UserAlreadyExistsError"){
+  if(error.name === "UserAlreadyExistsError"){
     return res.status(400).json({
       "code": 5,
       "message": "User Already Exists Error",
@@ -77,7 +77,7 @@ function errorHandler(error, req, res, next){
   /**
     * Authentication Failure Error
   */
-  if(error.name == "AuthenticationFailedError"){
+  if(error.name === "AuthenticationFailedError"){
     return res.status(403).json({
       "code": 6,
       "message": "Authentication Error",
