@@ -2,4 +2,4 @@
 FROM taxe/app
 ENV NODE_END dev
 RUN npm install && npm install -g mocha
-CMD mocha tests/allTests.js --exit
+CMD mocha tests/user.js --exit

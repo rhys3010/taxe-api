@@ -47,7 +47,7 @@ async function authenticate(email, password){
     const {password, ...userWithoutHash} = user.toObject();
 
     // Create a jwt access token signed with the user's id and role as the payload.
-    const token = jwt.sign({sub: user.id, role: user.role}, jwtSecret, {expiresIn: expiryTime});
+    let token = jwt.sign({sub: user.id, role: user.role}, jwtSecret, {expiresIn: expiryTime});
 
     // Return user summary (omitting password) and the jwt token.
     return {
