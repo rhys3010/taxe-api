@@ -37,10 +37,20 @@ function userCreate(req, res, next){
     }
 
     // Make sure that the provided email is actually an email
+    if(!isEmail(info.email)){
+        errors.push("Invalid Email Entered");
+    }
 
     // Make sure that the provided password meets the password requirements
+    if(!isValidPassword(info.password)){
+        errors.push("Password must be at least 8 characters long and contain at least one number");
+    }
 
-    // Make sure that the provided name is of valid length etc.
+    // Make sure that the provided name doesn't contain any number or special characters
+    // With the exception of a hyphen
+    if(!isValidName(info.name)){
+        errors.push("Names cannot contain any numbers or special characters");
+    }
 
     // If there are errors, throw them
     if(errors.length !== 0){
@@ -49,4 +59,42 @@ function userCreate(req, res, next){
     }
 
     next();
+}
+
+/**
+ * Utility function to evaluate whether a given input is an email or not
+ * Regular Expresssion taken from: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+ * @param input - The Email the user has entered
+ */
+function isEmail(input){
+    let regExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    return regExp.test(String(input).toLowerCase());
+}
+
+/**
+ * Util function to evaluate whether a given input meets the following requirements
+ * Must be atleast 8 characters long
+ * Must contain atleast one number
+ * @param input - the password the user's entered
+ */
+function isValidPassword(input) {
+    // Verify length
+    if (input.length < 8) {
+        return false;
+    }
+
+    // Verify that it contains a number
+    return /\d/.test(input);
+}
+
+/**
+ * Util function to evaluate whether a given input meets the following requirements
+ * Cannot contain any numbers or symbols (other than -). (A-Z) only
+ * @param input
+ */
+function isValidName(input){
+
+    // Verify that name only contains hyphen, space or A-Z
+    return /^[a-zA-z-" "]+$/.test(input);
 }
