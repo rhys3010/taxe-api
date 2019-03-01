@@ -1,6 +1,6 @@
 /**
  * user.js
- * All user related tests (specifically the /users/) route
+ * All user related test (specifically the /users/) route
  * @author Rhys Evans
  * @version 0.1
  */
@@ -78,7 +78,6 @@ describe('Users', function(){
                     res.should.have.status(200);
                     res.body.should.be.a('array');
                     res.body.length.should.be.eql(1);
-                    console.log(res.body);
                     done()
                 });
         });
