@@ -19,7 +19,7 @@ module.exports = {
  * @param next
  */
 function userCreate(req, res, next){
-    info = req.body;
+    const info = req.body;
 
     // A list of errors to potentially throw within
     // ValidationError (as nested errors)
@@ -27,7 +27,11 @@ function userCreate(req, res, next){
 
     // Make sure that each required field of user info exists and
     if(!info.email || !info.name || !info.password){
+        // If any fields are missing, throw error and return now
+        // to avoid any null pointers
         errors.push("Email, Name or Password was not provided");
+        errors.name = "ValidationError";
+        throw errors;
     }
 
     // Make sure that there are no duplicate fields

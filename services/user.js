@@ -113,10 +113,10 @@ async function getByEmail(email){
 */
 async function getAll(){
   // Get all users
-  const users = User.find({}).select("name");
+  const users = await User.find({}).select("name");
 
   // If no users were found, throw 404
-  if(users.length === 0){
+  if(!users.length){
     const error = new Error();
     error.name = "NoUsersFoundError";
     throw error;
