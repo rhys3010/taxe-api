@@ -42,9 +42,9 @@ async function authenticate(email, password){
 
   // Verify that user exists then check if password hash matches that stored
   // in user record
-  if(user && bcrypt.compareSync(password, user.hashed_password)){
+  if(user && bcrypt.compareSync(password, user.password)){
     // Omit hashed pasword from the return value
-    const {hashed_password, ...userWithoutHash} = user.toObject();
+    const {password, ...userWithoutHash} = user.toObject();
 
     // Create a jwt access token signed with the user's id and role as the payload.
     const token = jwt.sign({sub: user.id, role: user.role}, jwtSecret, {expiresIn: expiryTime});
@@ -58,9 +58,9 @@ async function authenticate(email, password){
 }
 
 /**
-  * Create a new user record.
-  * TODO: Validation
-  * @param userInfo - Object that contains new user's email, password and name
+  * Create a new user record and save to Mongo DB.
+  * @param userInfo - Object that contains new user's email, password and name directly from
+  * http request.
 */
 async function create(userInfo){
   // Verify that user's email is unique
@@ -72,15 +72,17 @@ async function create(userInfo){
   }
 
   // Create a new user
-  const user = new User(userInfo);
+  // calling new User(userInfo) would allow client to manually create fields within document
+  // that shouldn't be done. For example populate created_at field through req body.
+  const newUser = new User({email: userInfo.email, password: userInfo.password, name: userInfo.name});
 
   // Hash the user's password
   if(userInfo.password){
-    user.hashed_password = bcrypt.hashSync(userInfo.password, 10);
+    newUser.password = bcrypt.hashSync(userInfo.password, 10);
   }
 
   // Commit user to DB
-  await user.save();
+  await newUser.save();
 }
 
 /**
@@ -100,7 +102,7 @@ async function getByEmail(email){
   }
 
   // Return user and omit password
-  const {hashed_password, ...userWithoutPassword} = user.toObject();
+  const {password, ...userWithoutPassword} = user.toObject();
   return userWithoutPassword;
 }
 

@@ -28,7 +28,7 @@ module.exports = {
   * @param next - The next middleware to execute
 */
 function authenticate(req, res, next){
-  // Get user's credentials from the reuqest header
+  // Get user's credentials from the request header
   const credentials = auth(req);
   userService.authenticate(credentials.name, credentials.pass)
     .then(function(user){

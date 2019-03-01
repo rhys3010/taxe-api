@@ -15,7 +15,7 @@ const Schema = mongoose.Schema;
 */
 const userSchema = mongoose.Schema({
   email: {type: String, unique: true, required: true},
-  hashed_password: {type: String, required: true},
+  password: {type: String, required: true},
   name: {type: String, required: true},
   role: {type: String, enum: ['Customer', 'Driver', 'Company_Admin'], default: 'Customer'},
   created_at: {type: Date, default: Date.now}

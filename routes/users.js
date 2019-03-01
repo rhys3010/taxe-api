@@ -11,6 +11,7 @@
 const router = require('express').Router();
 const userController = require('../controllers/user');
 const auth = require('../middlewares/auth')
+const validate = require('../middlewares/validate');
 
 /**
   * GET /users
@@ -22,7 +23,7 @@ router.get('/', auth, userController.getAll);
   * POST /users
   * Create new user
 */
-router.post('/', userController.register);
+router.post('/', validate.userCreate, userController.register);
 
 /**
   * POST /users/login

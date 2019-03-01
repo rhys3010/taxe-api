@@ -87,9 +87,16 @@ function errorHandler(error, req, res, next){
 
   /**
     * Validation Error
-    * TODO express-validator
-    * TODO user already exists
+    * If validation error is thrown, it will usually be
+    * a list of errors
   */
+  if(error.name === "ValidationError"){
+    return res.status(400).json({
+      "code": 7,
+      "message": "A Validation Error Occured",
+      "errors": error
+    });
+  }
 
   /**
     * Default case, internal server error with details of error
