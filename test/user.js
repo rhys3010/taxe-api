@@ -360,7 +360,7 @@ describe('Users', function(){
                 .post(URI_PREFIX + "/users/login")
                 .set("Authorization", toAuth(loginInfo.email, loginInfo.password))
                 .end((err, res) => {
-                   res.should.have.status(200);
+                   res.should.have.status(201);
                    res.body.should.have.property('token');
                    done();
                 });
