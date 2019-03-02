@@ -96,3 +96,7 @@ $RECYCLE.BIN/
 
 ## Config File ##
 config.json
+
+## Cert Files ##
+*.key
+*.cert

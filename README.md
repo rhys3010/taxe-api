@@ -6,7 +6,11 @@ An express.js REST API that is used to serve the [Tax-E Android App](https://git
 
 ## Installing / Getting Started
 
-Simply build and run the docker image.
+Firstly, rename 'config.sample.json' to 'config.json', then input necessary values. Then, generate SSL certificate (/scripts):
+
+```shell
+sh generate-cert.sh
+```
 
 ```shell
 npm run-script build
