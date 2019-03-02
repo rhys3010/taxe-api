@@ -11,4 +11,4 @@ install:
   - sh scripts/create-config.sh
 
 script:
-  - docker-compose build && docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+  - npm test
