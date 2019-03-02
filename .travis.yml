@@ -11,4 +11,4 @@ install:
   - sh scripts/create-config.sh
 
 script:
-  - npm test
+  - npm run test
