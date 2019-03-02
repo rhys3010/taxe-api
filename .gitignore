@@ -100,3 +100,5 @@ config.json
 ## Cert Files ##
 *.key
 *.cert
+*.pem
+*.csr

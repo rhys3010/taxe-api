@@ -14,8 +14,8 @@ const fs = require('fs');
 
 // Get SSL key and cert from file
 // If not present, generate at scripts/generate-cert.sh
-const sslKey = fs.readFileSync('bin/ssl/server.key');
-const sslCert = fs.readFileSync('bin/ssl/server.cert');
+const sslKey = fs.readFileSync('bin/ssl/client-key.pem');
+const sslCert = fs.readFileSync('bin/ssl/client-cert.pem');
 
 /**
   * Get port from environment and store in Express.
@@ -33,9 +33,7 @@ let httpServer = http.createServer(app);
  */
 let httpsServer = https.createServer({
   key: sslKey,
-  cert: sslCert,
-  requestCert: false,
-  rejectUnauthorized: false
+  cert: sslCert
 }, app);
 
 /**

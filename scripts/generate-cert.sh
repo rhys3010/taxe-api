@@ -2,4 +2,7 @@
 
 # Generate SSL cert for HTTPS
 
-openssl req -nodes -new -x509 -keyout ../bin/ssl/server.key -out ../bin/ssl/server.cert
+cd ../bin/ssl;
+openssl genrsa -out client-key.pem 2048;
+openssl req -new -key client-key.pem -out client.csr;
+openssl x509 -req -in client.csr -signkey client-key.pem -out client-cert.pem;
