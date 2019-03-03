@@ -92,13 +92,6 @@ async function create(userInfo){
  * @returns The user's record without password
  */
 async function getById(id){
-  // Verify that 'id' is valid
-  if(!mongoose.Types.ObjectId.isValid(id)){
-    const error = new Error();
-    error.name = "InvalidObjectId";
-    throw error;
-  }
-
   // Find user by ID in DB
   const user = await User.findById(id);
 

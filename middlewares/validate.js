@@ -6,10 +6,13 @@
  * @version 0.1
  * */
 
+const mongoose = require('mongoose');
+
 'use strict';
 
 module.exports = {
-    userCreate
+    userCreate,
+    mongoObjectId
 };
 
 /**
@@ -66,6 +69,30 @@ function userCreate(req, res, next){
 
     next();
 }
+
+/**
+ * Validate MongoDB Object Id
+ * @param req
+ * @param res
+ * @param next
+ */
+function mongoObjectId(req, res, next){
+    const id = req.params.id;
+
+    // Verify that 'id' is valid
+    // If it isn't throw error
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        const error = new Error();
+        error.name = "InvalidObjectId";
+        throw error;
+    }
+
+    next();
+}
+
+//////////////////////////////////
+/////// PRIVATE FUNCTIONS ////////
+//////////////////////////////////
 
 /**
  * Utility function to evaluate whether a given input is an email or not

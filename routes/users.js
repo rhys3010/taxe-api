@@ -16,12 +16,14 @@ const validate = require('../middlewares/validate');
 /**
   * GET /users
   * List all users
+ * Middleware: Auth
 */
 router.get('/', auth, userController.getAll);
 
 /**
   * POST /users
   * Create new user
+ * Middleware: Validate (User Creation)
 */
 router.post('/', validate.userCreate, userController.register);
 
@@ -34,14 +36,19 @@ router.post('/login', userController.authenticate);
 /**
  * GET /users/:id
  * View individual user record by id
+ * Middleware: Auth, Validate (MongoDB Object Id)
  */
-router.get('/:id', auth, userController.getById);
+router.get('/:id', [auth, validate.mongoObjectId], userController.getById);
 
 /**
   * PUT /users/:id
   * Edit individual user record
 */
-router.put('/:email', function(req, res, next){
+router.put('/:id', [auth, validate.mongoObjectId], function(req, res, next){
+  if(res.locals.userId !== req.params.id){
+    res.json({"message": "not your account!"});
+  }
+
   res.json({"message": "edit user info here"});
 });
 
