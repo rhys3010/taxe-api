@@ -1,6 +1,6 @@
 /**
-  * auth.js
-  * Authorization middleware to verify and validate user's
+  * authenticateToken.js
+  * Authentication middleware to verify and validate user's
   * access token.
   * @author Rhys Evans
   * @version 0.1
@@ -12,13 +12,13 @@ const config = require('../config.json');
 const jwt = require('jsonwebtoken');
 
 /**
-  * Verify that user's auth token is valid
+  * Verify that user's authentication token is valid
   * @param req - HTTP request object
   * @param res - HTTP response object
   * @param next - The next middleware to execute
 */
-function auth(req, res, next){
-  // Get the auth header
+function authenticateToken(req, res, next){
+  // Get the authenticateToken header
   const authHeader = req.headers['authorization'] || req.headers['x-access-token'];
 
   // Verify that it had contents
@@ -50,4 +50,4 @@ function auth(req, res, next){
   next();
 }
 
-module.exports = auth;
+module.exports = authenticateToken;

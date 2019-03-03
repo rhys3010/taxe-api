@@ -10,7 +10,7 @@
 
 const router = require('express').Router();
 const userController = require('../controllers/user');
-const auth = require('../middlewares/auth')
+const authenticateToken = require('../middlewares/authenticateToken')
 const validate = require('../middlewares/validate');
 
 /**
@@ -18,7 +18,7 @@ const validate = require('../middlewares/validate');
   * List all users
  * Middleware: Auth
 */
-router.get('/', auth, userController.getAll);
+router.get('/', authenticateToken, userController.getAll);
 
 /**
   * POST /users
@@ -38,13 +38,13 @@ router.post('/login', userController.authenticate);
  * View individual user record by id
  * Middleware: Auth, Validate (MongoDB Object Id)
  */
-router.get('/:id', [auth, validate.mongoObjectId], userController.getById);
+router.get('/:id', [authenticateToken, validate.mongoObjectId], userController.getById);
 
 /**
   * PUT /users/:id
   * Edit individual user record
 */
-router.put('/:id', [auth, validate.mongoObjectId], function(req, res, next){
+router.put('/:id', [authenticateToken, validate.mongoObjectId], function(req, res, next){
   if(res.locals.userId !== req.params.id){
     res.json({"message": "not your account!"});
   }
