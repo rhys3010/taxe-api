@@ -91,7 +91,7 @@ function getAll(req, res, next){
  */
 function edit(req, res, next){
   userService.edit(res.locals.userId,req.params.id, req.body)
-      .then(() => res.status(200).json({message: "User Successfully Editted"}))
+      .then(() => res.status(200).json({message: "User Successfully Edited"}))
       .catch(err => next(err));
 
 }

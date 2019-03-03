@@ -153,6 +153,16 @@ async function edit(editorId, userId, userInfo){
     throw error;
   }
 
-  // Check that value differs from current?
-  // Make the edit
+  // Make the edit(s)
+  if(userInfo.name){
+    user.name = userInfo.name;
+  }
+
+  if(userInfo.password){
+    // Hash the password
+    user.password = bcrypt.hashSync(userInfo.password, 10);
+  }
+
+  // Commit changes to DB
+  await user.save();
 }
