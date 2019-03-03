@@ -43,8 +43,9 @@ router.get('/:id', [authenticateToken, validate.mongoObjectId], userController.g
 /**
   * PUT /users/:id
   * Edit individual user record
+ * Middleware: Auth, Validate (Mongo Object Id and User Edit)
 */
-router.put('/:id', [authenticateToken, validate.mongoObjectId], userController.edit);
+router.put('/:id', [authenticateToken, validate.mongoObjectId, validate.userEdit], userController.edit);
 
 
 module.exports = router;

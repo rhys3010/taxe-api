@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 
 module.exports = {
     userCreate,
+    userEdit,
     mongoObjectId
 };
 
@@ -26,7 +27,7 @@ function userCreate(req, res, next){
 
     // A list of errors to potentially throw within
     // ValidationError (as nested errors)
-    const errors = [];
+    let errors = [];
 
     // Make sure that each required field of user info exists and
     if(!info.email || !info.name || !info.password){
@@ -59,6 +60,55 @@ function userCreate(req, res, next){
     // With the exception of a hyphen
     if(!isValidName(info.name)){
         errors.push("Names cannot contain any numbers or special characters and must be atlesat 3 characters");
+    }
+
+    // If there are errors, throw them
+    if(errors.length !== 0){
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    next();
+}
+
+/**
+ * Validate input for user edit
+ * @param req
+ * @param res
+ * @param next
+ */
+function userEdit(req, res, next){
+    // Updated user info from http body
+    const info = req.body;
+
+    // Keep a list of validation errors to output
+    let errors = [];
+
+    // If no updated password or name were provided, throw error
+    if(!info.name && !info.password){
+        errors.push("No updated information found");
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    // Make sure there aren't any duplicate fields
+    if(Array.isArray(info.name) || Array.isArray(info.password)){
+        errors.push("Duplicate Entries Found");
+    }
+
+    // Make sure that the provided password meets the password requirements
+    if(info.password) {
+        if (!isValidPassword(info.password)) {
+            errors.push("Password must be at least 8 characters long and contain at least one number");
+        }
+    }
+
+    // Make sure that the provided name doesn't contain any number or special characters
+    // With the exception of a hyphen
+    if(info.name){
+        if(!isValidName(info.name)){
+            errors.push("Names cannot contain any numbers or special characters and must be atlesat 3 characters");
+        }
     }
 
     // If there are errors, throw them

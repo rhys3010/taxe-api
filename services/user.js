@@ -153,5 +153,6 @@ async function edit(editorId, userId, userInfo){
     throw error;
   }
 
+  // Check that value differs from current?
   // Make the edit
 }
