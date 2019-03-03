@@ -1,5 +1,5 @@
 {
   "jwtSecret": "",
   "jwtExpiry": 0,
-  "mongoURI": ""
+  "mongoURI": "mongodb://mongo:27017/taxe-api"
 }
