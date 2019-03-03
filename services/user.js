@@ -13,6 +13,7 @@ const config = require('../config.json');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('../helpers/db');
+const mongoose = require('mongoose');
 const User = db.User;
 
 /**
@@ -21,7 +22,7 @@ const User = db.User;
 module.exports = {
   authenticate,
   create,
-  getByEmail,
+  getById,
   getAll
 };
 
@@ -86,13 +87,20 @@ async function create(userInfo){
 }
 
 /**
-  * Get a user record from Email
-  * @param email - The user's Email
-  * @returns The user's record with password omitted
-*/
-async function getByEmail(email){
-  // Find user by Email in DB
-  const user = await User.findOne({email: email});
+ * Get a user record from DB by ID
+ * @param id
+ * @returns The user's record without password
+ */
+async function getById(id){
+  // Verify that 'id' is valid
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    const error = new Error();
+    error.name = "InvalidObjectId";
+    throw error;
+  }
+
+  // Find user by ID in DB
+  const user = await User.findById(id);
 
   // If no user was found, throw 404 error and return
   if(!user){

@@ -17,11 +17,21 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const auth = require('basic-auth');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 
 chai.use(chaiHttp);
 
 // Parent testing block
 describe('Users', function(){
+
+    // The sample user to create token
+    // TODO: Deal with asynchronous call, (newUser is probably null)
+    let user = new User({email: "me@gmail.com", name: "Rhys Evans", password: "passwordpassword12354"});
+    user.save();
+    // Use sample user to generate token
+    let newUser = User.find({email: "me@gmail.com"});
+    let token = jwt.sign({sub: newUser.id, role: newUser.role}, config.jwtSecret, {expiresIn: 60});
+    token = "Bearer " + token;
 
     // Before each test empty out the Users database
     beforeEach((done) => {
@@ -34,14 +44,6 @@ describe('Users', function(){
      * Test GET /users route
      */
     describe('/GET users', function(){
-        // Create a new user to grant token to
-        let user = new User({email: "janedoe@gmail.com", name: "Jane Doe", password: "qwerty123456"});
-        user.save();
-
-        // Get the newly created user in order to generate a token
-        let newUser = User.find({email: "janedoe@gmail.com"});
-        let token = jwt.sign({sub: newUser.id, role: newUser.role}, config.jwtSecret, {expiresIn: 60});
-        token = "Bearer " + token;
 
         // Get Users using a missing token
         it('responds with status 401', function(done){
@@ -221,28 +223,20 @@ describe('Users', function(){
     });
 
     /**
-     * Test GET /users/:email route
+     * Test GET /users/:id route
      */
-    describe('/GET users/:email', function(){
-
-        // Email to use to search for user
-        const emailToSearch = "johndoe@gmail.com";
-        // The sample user to view profile
-        let user = new User({email: "me@gmail.com", name: "Rhys Evans", password: "passwordpassword12354"});
-        user.save();
-        // Use sample user to generate token
-        let newUser = User.find({email: "me@gmail.com"});
-        let token = jwt.sign({sub: newUser.id, role: newUser.role}, config.jwtSecret, {expiresIn: 60});
-        token = "Bearer " + token;
+    describe('/GET users/:id', function(){
 
         // Attempt to view user profile without token
         it('responds with 401 status and missing token error', function(done){
             // The sample user to view profile
             let user = new User({email: "johndoe@gmail.com", name: "John Doe", password: "ajmigofayhc9uhabwiugb12"});
             user.save();
+            // ID to use to search for user
+            const idToSearch = User.find({email: "johndoe@gmail.com"}).select("_id");
 
             chai.request(app)
-                .get(URI_PREFIX + "/users/" + emailToSearch)
+                .get(URI_PREFIX + "/users/" + idToSearch)
                 .end((err, res) => {
                     res.should.have.status(401);
                     res.body.should.have.property('code').eql(3);
@@ -250,10 +244,30 @@ describe('Users', function(){
                 });
         });
 
-        // Atttempt to get user info that doesnt exist
-        it('responds with 404 status and no users found error', function(done){
+        // Atttempt to get user info using an invalid object ID
+        it('responds with 400 status and InvalidObjectId error', function(done){
             chai.request(app)
-                .get(URI_PREFIX + "/users/person@doesntexist.com")
+                .get(URI_PREFIX + "/users/invalidIDsearch")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.have.property('code').eql(8);
+                    done();
+                });
+        });
+
+        // Attempt to get user info where the ID is valid but user doesn't exist
+        it('responds with 404 status and returns usernotfound error', function(done){
+            // Generate ID for new user
+            let userId = mongoose.Types.ObjectId();
+            // The sample user to view profile
+            let user = new User({email: "johndoe@gmail.com", name: "John Doe", password: "ajmigofayhc9uhabwiugb12", _id: userId});
+            user.save();
+            // Generate a (valid) random ID to use to search with
+            let unknownId = mongoose.Types.ObjectId();
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + unknownId)
                 .set('Authorization', token)
                 .end((err, res) => {
                     res.should.have.status(404);
@@ -262,18 +276,21 @@ describe('Users', function(){
                 });
         });
 
+
         // Successfully view user info
         it('responds with 200 status and returns info about user, omitting password', function(done){
+            // Generate ID for new user
+            let userId = mongoose.Types.ObjectId();
             // The sample user to view profile
-            let user = new User({email: "johndoe@gmail.com", name: "John Doe", password: "ajmigofayhc9uhabwiugb12"});
+            let user = new User({email: "johndoe@gmail.com", name: "John Doe", password: "ajmigofayhc9uhabwiugb12", _id: userId});
             user.save();
 
             chai.request(app)
-                .get(URI_PREFIX + "/users/" + emailToSearch)
+                .get(URI_PREFIX + "/users/" + userId)
                 .set('Authorization', token)
                 .end((err, res) => {
                     res.should.have.status(200);
-                    res.body.should.have.property('email').eql(emailToSearch);
+                    res.body.should.have.property('email').eql("johndoe@gmail.com");
                     res.body.should.have.property('role').eql("Customer");
                     res.body.should.not.have.property('password');
                     done();
@@ -368,10 +385,10 @@ describe('Users', function(){
     });
 
     /**
-     * Test PUT /users/:email route
+     * Test PUT /users/:id route
      * TODO
      */
-    describe('/PUT users/:email', function(){
+    describe('/PUT users/:id', function(){
 
     });
 

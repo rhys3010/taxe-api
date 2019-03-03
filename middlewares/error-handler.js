@@ -99,6 +99,19 @@ function errorHandler(error, req, res, next){
   }
 
   /**
+   * InvalidObjectId Error
+   * If an invalid ObjectId is provided, this will
+   * usually be in routes that calls collection.findById()
+   */
+  if(error.name === "InvalidObjectId"){
+    return res.status(400).json({
+      "code": 8,
+      "message": "Invalid ID Provided",
+      "description": "The ID provided does not match the format required."
+    });
+  }
+
+  /**
     * Default case, internal server error with details of error
   */
   return res.status(500).json({

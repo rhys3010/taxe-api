@@ -32,10 +32,10 @@ router.post('/', validate.userCreate, userController.register);
 router.post('/login', userController.authenticate);
 
 /**
-  * GET /users/:id
-  * View individual user record
-*/
-router.get('/:email', auth, userController.getByEmail);
+ * GET /users/:id
+ * View individual user record by id
+ */
+router.get('/:id', auth, userController.getById);
 
 /**
   * PUT /users/:id
