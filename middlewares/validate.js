@@ -55,7 +55,7 @@ function userCreate(req, res, next){
     // Make sure that the provided name doesn't contain any number or special characters
     // With the exception of a hyphen
     if(!isValidName(info.name)){
-        errors.push("Names cannot contain any numbers or special characters");
+        errors.push("Names cannot contain any numbers or special characters and must be atlesat 3 characters");
     }
 
     // If there are errors, throw them
@@ -97,10 +97,12 @@ function isValidPassword(input) {
 /**
  * Util function to evaluate whether a given input meets the following requirements
  * Cannot contain any numbers or symbols (other than -). (A-Z) only
+ * and must be at least 3 characters
  * @param input
  */
 function isValidName(input){
 
     // Verify that name only contains hyphen, space or A-Z
-    return /^[a-zA-z-" "]+$/.test(input);
+    // and that it is atleast 3 characters long
+    return input.length > 3 && /^[a-zA-z- ]+$/.test(input);
 }
