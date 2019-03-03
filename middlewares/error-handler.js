@@ -112,6 +112,17 @@ function errorHandler(error, req, res, next){
   }
 
   /**
+   * UnauthorizedEditError
+   */
+  if(error.name === "UnauthorizedEditError"){
+    return res.status(403).json({
+      "code": 9,
+      "message": "Unauthorized Edit Error",
+      "description": "You are not authorized to make changes to this user record."
+    });
+  }
+
+  /**
     * Default case, internal server error with details of error
   */
   return res.status(500).json({

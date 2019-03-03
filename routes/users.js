@@ -44,13 +44,7 @@ router.get('/:id', [authenticateToken, validate.mongoObjectId], userController.g
   * PUT /users/:id
   * Edit individual user record
 */
-router.put('/:id', [authenticateToken, validate.mongoObjectId], function(req, res, next){
-  if(res.locals.userId !== req.params.id){
-    res.json({"message": "not your account!"});
-  }
-
-  res.json({"message": "edit user info here"});
-});
+router.put('/:id', [authenticateToken, validate.mongoObjectId], userController.edit);
 
 
 module.exports = router;

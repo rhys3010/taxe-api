@@ -17,7 +17,8 @@ module.exports = {
   authenticate,
   register,
   getById,
-  getAll
+  getAll,
+  edit
 };
 
 /**
@@ -79,5 +80,18 @@ function getAll(req, res, next){
   userService.getAll()
     .then(users => res.status(200).json(users))
     .catch(err => next(err));
+
+}
+
+/**
+ * Edits (if authorized) a user's profile (name and password).
+ * @param req - HTTP request object
+ * @param res - HTTP repsonse object
+ * @param next - next middleware to be executed
+ */
+function edit(req, res, next){
+  userService.edit(res.locals.userId,req.params.id, req.body)
+      .then(() => res.status(200).json({message: "User Successfully Editted"}))
+      .catch(err => next(err));
 
 }

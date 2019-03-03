@@ -23,7 +23,8 @@ module.exports = {
   authenticate,
   create,
   getById,
-  getAll
+  getAll,
+  edit
 };
 
 /**
@@ -124,4 +125,33 @@ async function getAll(){
   }
 
   return users;
+}
+
+
+/**
+ * If authorized, edit the specified user
+ * @param editorId - User editing's ID
+ * @param userId - User to edit's Database ID
+ * @param userInfo - Updated name and/or password
+ * @returns {Promise<void>}
+ */
+async function edit(editorId, userId, userInfo){
+  // Get the user
+  const user = await User.findById(userId);
+
+  // If no user matching that ID was found, throw 404
+  if(!user){
+    const error = new Error();
+    error.name = "NoUsersFoundError";
+    throw error;
+  }
+
+  // Verify that record belongs to user using the token's payload
+  if(editorId !== userId){
+    const error = new Error();
+    error.name = "UnauthorizedEditError";
+    throw error;
+  }
+
+  // Make the edit
 }
