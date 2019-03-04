@@ -2,18 +2,19 @@
 
 # Tax-E REST API &middot; ![Build Status](https://api.travis-ci.com/rhys3010/taxe-api.svg?token=jQp14CGybcZTPyDpbd5T&branch=master)
 
-An express.js REST API that is used to serve the [Tax-E Android App](https://github.com/rhys3010/taxe).
+An express.js REST API that is used to serve the [Tax-E Android App](https://github.com/rhys3010/taxe). Handles User Authentication, Bookings and Company Management.
 
 ## Installing / Getting Started
 
-Firstly, rename 'config.sample.json' to 'config.json', then input necessary values. Then, generate SSL certificate (/scripts):
+Firstly, rename 'config.sample.json' to 'config.json', and input necessary values (see configuration). Then, in order to generate SSL certificates, navigate to ./scripts and execute the following:
 
 ```shell
 sh generate-cert.sh
 ```
 
+Once all configuration is handled, simply run the following npm script. It will build, and spin up a docker container for both the database and the API.
+
 ```shell
-npm run-script build
 npm run-script start
 ```
 
