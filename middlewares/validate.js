@@ -133,7 +133,7 @@ function mongoObjectId(req, res, next){
     // If it isn't throw error
     if(!mongoose.Types.ObjectId.isValid(id)){
         const error = new Error();
-        error.name = "InvalidObjectId";
+        error.name = "InvalidObjectIdError";
         throw error;
     }
 
