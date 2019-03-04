@@ -25,12 +25,11 @@ chai.use(chaiHttp);
 describe('Users', function(){
 
     // The sample user to create token
-    // TODO: Deal with asynchronous call, (newUser is probably null)
-    let user = new User({email: "me@gmail.com", name: "Rhys Evans", password: "passwordpassword12354"});
+    let user = new User({email: "me@gmail.com", name: "Rhys Evans", password: "passwordpassword12354", role: "Customer", _id: mongoose.Types.ObjectId});
     user.save();
     // Use sample user to generate token
     let newUser = User.find({email: "me@gmail.com"});
-    let token = jwt.sign({sub: newUser.id, role: newUser.role}, config.jwtSecret, {expiresIn: 60});
+    let token = jwt.sign({sub: newUser.id, role: newUser.role}, config.jwtSecret, {expiresIn: 600});
     token = "Bearer " + token;
 
     // Before each test empty out the Users database
@@ -233,7 +232,7 @@ describe('Users', function(){
             let user = new User({email: "johndoe@gmail.com", name: "John Doe", password: "ajmigofayhc9uhabwiugb12"});
             user.save();
             // ID to use to search for user
-            const idToSearch = User.find({email: "johndoe@gmail.com"}).select("_id");
+            const idToSearch = mongoose.Types.ObjectId();
 
             chai.request(app)
                 .get(URI_PREFIX + "/users/" + idToSearch)
@@ -309,7 +308,7 @@ describe('Users', function(){
         let newUser = {
             email: "me@rhysevans.xyz",
             name: "Rhys Evans",
-            password: "asdf12345"
+            password: "asdf12345",
         };
         // Hash the password before saving
         newUser.password = bcrypt.hashSync(newUser.password, 10);
@@ -386,12 +385,169 @@ describe('Users', function(){
 
     /**
      * Test PUT /users/:id route
-     * TODO
+     * (Edit User)
      */
     describe('/PUT users/:id', function(){
 
-    });
+        // Create mongoose ID to apply to user
+        let templateUserId = mongoose.Types.ObjectId();
+        // Template to create new user
+        let userTemplate = {
+            email: "johndoe@gmail.com",
+            name: "John Doe",
+            password: "examplepassword12345",
+            role: "Customer",
+            _id: templateUserId
+        };
 
+        // Attempt to edit account without a token
+        it('responds with 401 status and returns MissingTokenError', function(done){
+            // Template for user account edits
+            let userEdits = {
+                name: "Jane Doe",
+                password: "newpassword12345"
+            };
+
+            let user = new User(userTemplate);
+            user.save();
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(401);
+                    res.body.should.have.property('code').eql(3);
+                    done();
+                });
+
+        });
+
+        // Attempt to edit account that doesn't exist
+        it('responds with 404 status and user not found error is returned', function(done){
+            // Template for user account edits
+            let userEdits = {
+                name: "Jane Doe",
+                password: "newpassword12345"
+            };
+            // Create and save new user
+            let  user = new User(userTemplate);
+            user.save();
+            // Generate (Valid) but non existing account ID
+            let searchId = mongoose.Types.ObjectId();
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + searchId)
+                .set("Authorization", token)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(4);
+                    done();
+                });
+        });
+
+        // Attempt to edit account that doesn't belong to you
+        it('responds with 403 status and returns UnauthorizedEditError', function(done){
+            // Template for user account edits
+            let userEdits = {
+                name: "Jane Doe",
+                password: "newpassword12345"
+            };
+            // Create and save new user
+            let user = new User(userTemplate);
+            user.save();
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .set("Authorization", token)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(403)
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Attempt to edit account with empty HTTP body
+        it('responds with 400 status and returns ValidationError', function(done){
+           // Template for user account edits
+           let userEdits = {};
+
+           // Create and save user
+            let user = new User(userTemplate);
+            user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: userTemplate._id, role: userTemplate.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .set("Authorization", validToken)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(400)
+                    res.body.should.have.property('code').eql(7);
+                    done();
+                });
+        });
+
+        // Attempt to edit account with invalid password and name
+        it('responds with 400 status and returns ValidationError', function(done){
+            // Template for user account edits
+            let userEdits = {
+                name: "JaneDoe!!",
+                password: "badpassword"
+            };
+
+            // Create and save user
+            let user = new User(userTemplate);
+            user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: userTemplate._id, role: userTemplate.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .set("Authorization", validToken)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.have.property('code').eql(7);
+                    done();
+                });
+        });
+
+        // Successfully Edit account
+        it('responds with 200 status and returns success message', function(done){
+
+            // Template for user account edits
+            let userEdits = {
+                name: "Jane Doe",
+                password: "newpassword12345"
+            };
+
+            // Create and save user
+            let user = new User(userTemplate);
+            user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: userTemplate._id, role: userTemplate.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .set("Authorization", validToken)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property("message").eql("User Successfully Edited");
+                    done();
+                });
+        });
+
+    });
 });
 
 /**
