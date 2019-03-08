@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app
 
 # TODO: Environment variables
-ENV NODE_ENV prod
+ENV NODE_ENV dev
 
 # Download required packages
 RUN npm install

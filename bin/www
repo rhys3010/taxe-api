@@ -11,6 +11,7 @@ const app = require('../app');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
+const config = require('../config.json');
 
 // Get SSL key and cert from file
 // If not present, generate at scripts/generate-cert.sh
@@ -20,8 +21,8 @@ const sslCert = fs.readFileSync('bin/ssl/client-cert.pem');
 /**
   * Get port from environment and store in Express.
 */
-let httpPort = normalizePort(process.env.PORT_HTTP || '3000');
-let httpsPort = normalizePort(process.env.PORT_HTTPS || '3443');
+let httpPort = normalizePort(process.env.PORT_HTTP || config.httpPort || '3000');
+let httpsPort = normalizePort(process.env.PORT_HTTPS || config.httpsPort || '3443');
 
 /**
   * Create HTTP Server.

@@ -18,12 +18,19 @@ if(process.env.NODE_ENV === 'test'){
     mongoose.connect(process.env.MONGO_URI || config.mongoURI, {useCreateIndex: true, useNewUrlParser: true});
     mongoose.Promise = global.Promise;
   });
-}else{
+  // If dev environment, connect to MongoDB without auth credentials
+}else if (process.env.NODE_ENV === 'dev'){
   // Establish connection to mongoose
   mongoose.connect(process.env.MONGO_URI || config.mongoURI, {useCreateIndex: true, useNewUrlParser: true});
   mongoose.Promise = global.Promise;
+  // If prod environment, connect to MongoDB with auth credentials
+}else if(process.env.NODE_ENV === 'prod'){
+  mongoose.connect(process.env.MONGO_URI || config.mongoURI, {
+    "user": process.env.MONGO_USER || config.mongoUser,
+    "pass": process.env.MONGO_PASSWORD || config.mongoPassword,
+    "useMongoClient": true
+  });
 }
-
 
 module.exports = {
   User: require('../models/user')
