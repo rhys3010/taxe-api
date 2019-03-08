@@ -18,7 +18,6 @@ if(process.env.NODE_ENV === 'test'){
     mongoose.connect(process.env.MONGO_URI || config.mongoURI, {useCreateIndex: true, useNewUrlParser: true});
     mongoose.Promise = global.Promise;
   });
-
 }else{
   // Establish connection to mongoose
   mongoose.connect(process.env.MONGO_URI || config.mongoURI, {useCreateIndex: true, useNewUrlParser: true});

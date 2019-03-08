@@ -12,11 +12,10 @@ services:
       - "3443:3443"
     links:
       - mongo
-
   mongo:
     container_name: mongodb
     image: mongo
     ports:
       - "27017:27017"
     volumes:
-      - ./bin/data/prod:/data/db
+      - ./bin/data/:/data/db
