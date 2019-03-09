@@ -9,44 +9,23 @@
 
 const app = require('../app');
 const http = require('http');
-const https = require('https');
-const fs = require('fs');
 const config = require('../config.json');
-
-// Get SSL key and cert from file
-// If not present, generate at scripts/generate-cert.sh
-const sslKey = fs.readFileSync('bin/ssl/client-key.pem');
-const sslCert = fs.readFileSync('bin/ssl/client-cert.pem');
 
 /**
   * Get port from environment and store in Express.
 */
 let httpPort = normalizePort(process.env.PORT_HTTP || config.httpPort || '3000');
-let httpsPort = normalizePort(process.env.PORT_HTTPS || config.httpsPort || '3443');
-
-/**
-  * Create HTTP Server.
-*/
-let httpServer = http.createServer(app);
-
-/**
- * Create HTTPS Server
- */
-let httpsServer = https.createServer({
-  key: sslKey,
-  cert: sslCert
-}, app);
 
 /**
   * HTTP Listen on provided port, on all network interfaces
 */
-httpServer.listen(httpPort, "localhost");
-httpServer.on('listening', onListening);
+if(process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'test'){
+  app.listen(httpPort);
+}else{
+  app.listen(httpPort, "localhost");
+}
 
-/**
- * HTTPS Listen on provided port, on all network interfaces
- */
-httpsServer.listen(httpsPort, "localhost");
+console.log('Listening on ' + httpPort);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -65,15 +44,4 @@ function normalizePort(val) {
   }
 
   return false;
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-function onListening() {
-  let addr = httpServer.address();
-  let bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  console.log('Listening on ' + bind);
 }

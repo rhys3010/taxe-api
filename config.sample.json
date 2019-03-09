@@ -1,10 +1,8 @@
 {
-  "nodeEnv": "dev",
   "httpPort": "3000",
-  "httpsPort": "3443",
   "jwtSecret": "",
   "jwtExpiry": 0,
-  "mongoURI": "mongodb://mongo:27017/taxe-api",
+  "mongoURI": "mongodb://localhost:27017/taxe-api",
   "mongoUser": "",
   "mongoPassword": ""
 }
