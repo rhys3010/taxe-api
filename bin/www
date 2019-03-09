@@ -40,13 +40,13 @@ let httpsServer = https.createServer({
 /**
   * HTTP Listen on provided port, on all network interfaces
 */
-httpServer.listen(httpPort);
+httpServer.listen(httpPort, "localhost");
 httpServer.on('listening', onListening);
 
 /**
  * HTTPS Listen on provided port, on all network interfaces
  */
-httpsServer.listen(httpsPort);
+httpsServer.listen(httpsPort, "localhost");
 
 /**
  * Normalize a port into a number, string, or false.
