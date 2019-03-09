@@ -16,7 +16,7 @@ sh generate-cert.sh
 Once all configuration is handled, simply run the following npm script. It will build, and spin up a docker container for both the database and the API.
 
 ```shell
-npm run-script start
+npm run-script debug
 ```
 
 ## Developing

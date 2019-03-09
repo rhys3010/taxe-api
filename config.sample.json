@@ -1,4 +1,5 @@
 {
+  "nodeEnv": "dev",
   "httpPort": "3000",
   "httpsPort": "3443",
   "jwtSecret": "",
