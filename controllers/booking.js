@@ -24,7 +24,7 @@ module.exports = {
  */
 function create(req, res, next){
     bookingService.create(res.locals.userId, req.body)
-        .then(bookingId => res.status(201).json(bookingId))
+        .then(bookingId => res.status(201).json({message: "Booking Successfully Created", booking_id: bookingId}))
         .catch(err => next(err));
 }
 

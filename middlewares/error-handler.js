@@ -137,7 +137,7 @@ function errorHandler(error, req, res, next){
    * CustomerAlreadyHasActiveBookingError
    */
   if(error.name === "CustomerAlreadyHasActiveBookingError"){
-    return res.status(401).json({
+    return res.status(403).json({
       "code": 11,
       "message": "Customer Already Has an Active Booking",
       "description": "The Customer provided already has an active booking, therefore a new one could not be processed."
