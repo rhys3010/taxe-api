@@ -1,6 +1,6 @@
 {
   "name": "taxe-api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An express.js REST API that is used to serve the Tax-E Android App.",
   "author": "Rhys Evans (rhysevans.xyz)",
   "repository": {

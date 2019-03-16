@@ -3,7 +3,7 @@
  * Validation middleware to check HTTP requests are valid (duh)
  * and meet all necessary criteria
  * @author Rhys Evans
- * @version 0.1
+ * @version 0.2
  * */
 
 const mongoose = require('mongoose');
@@ -13,8 +13,17 @@ const mongoose = require('mongoose');
 module.exports = {
     userCreate,
     userEdit,
-    mongoObjectId
+    mongoObjectId,
+    bookingCreate
 };
+
+/**
+ * Constant for the time restrictions of bookings
+ */
+// How far in the future are we willing to take bookings for?
+const MAX_HOURS_FUTURE = 3;
+// How much notice do we need for a booking (i.e. 10 minutes in future..)
+const MIN_MINUTES_NOTICE = 10;
 
 /**
  * Validate input for user creation
@@ -140,6 +149,55 @@ function mongoObjectId(req, res, next){
     next();
 }
 
+/**
+ * Validate input for booking creation
+ * @param req
+ * @param res
+ * @param next
+ */
+function bookingCreate(req, res, next){
+    const info = req.body;
+
+    // A list of errors to potentially throw within
+    // ValidationError (as nested errors)
+    let errors = [];
+
+    // Make sure that each required field of user info exists and
+    if(!info.pickup_location || !info.destination || !info.time || !info.no_passengers || !info.customer){
+        // If any fields are missing, throw error and return now
+        // to avoid any null pointers
+        errors.push("Pickup Location, Destination, Time, Number of Passengers and Customer ID must be provided");
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    // Make sure that there are no duplicate fields
+    // by checking each key in the info object to see if its an array.
+    // If there are multiple entries of the same key in a HTTP request body
+    // they are formed into an array under the same key.
+    if(Array.isArray(info.pickup_location) || Array.isArray(info.destination) || Array.isArray(info.time) || Array.isArray(info.no_passengers) || Array.isArray(info.customer)){
+        errors.push("Duplicate Entries Found");
+    }
+
+    // Make sure that the time provided isn't too far in the future, isn't too soon and isnt in past
+    if(!isValidTime(info.time)){
+        errors.push("Booking time cannot be in the past, further than " + MAX_HOURS_FUTURE + " hours away, or sooner than " + MIN_MINUTES_NOTICE + " minutes away");
+    }
+
+    // Make sure that the provided number of passengers is valid
+    if(info.no_passengers < 1){
+        errors.push("Must have at least one passenger");
+    }
+
+    // If there are errors, throw them
+    if(errors.length !== 0){
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    next();
+}
+
 //////////////////////////////////
 /////// PRIVATE FUNCTIONS ////////
 //////////////////////////////////
@@ -182,4 +240,36 @@ function isValidName(input){
     // Verify that name only contains hyphen, space or A-Z
     // and that it is atleast 3 characters long
     return input.length > 3 && /^[a-zA-z- ]+$/.test(input);
+}
+
+/**
+ * Util function to evaluate whether a provided time meets the following requirements
+ * Cannot be too far into the future (see const)
+ * Cannot be in the past
+ * Cannot be too soon (see const)
+ * @param input
+ */
+function isValidTime(input){
+    // Parse the ISO time string to a JS date object
+    let bookingTime =  Date.parse(input);
+
+    // Get the number of hours from now to the booking time
+    let hours = Math.abs(bookingTime - Date.now()) / 36e5;
+
+    // If the difference in hours between now and booking time is more than specified, return false
+    if(hours > MAX_HOURS_FUTURE){
+        return false;
+    }
+
+    // If the booking time is in the PAST, return false
+    if(bookingTime < Date.now()){
+        return false;
+    }
+
+    // If the difference in minutes between now and booking time is less than specified, return false
+    if((hours*60) < MIN_MINUTES_NOTICE){
+        return false;
+    }
+
+    return true;
 }

@@ -123,6 +123,17 @@ function errorHandler(error, req, res, next){
   }
 
   /**
+   * BookingNotFoundError
+   */
+  if(error.name === "BookingNotFoundError"){
+    return res.status(404).json({
+      "code": 10,
+      "message": "Booking Not Found",
+      "description": "No Bookings Could be Found"
+    });
+  }
+
+  /**
     * Default case, internal server error with details of error
    * TODO: Don't return error.message in production
   */
