@@ -163,7 +163,7 @@ function bookingCreate(req, res, next){
     let errors = [];
 
     // Make sure that each required field of user info exists and
-    if(!info.pickup_location || !info.destination || !info.time || !info.no_passengers || !info.customer){
+    if(!info.pickup_location || !info.destination || !info.time || !info.no_passengers){
         // If any fields are missing, throw error and return now
         // to avoid any null pointers
         errors.push("Pickup Location, Destination, Time, Number of Passengers and Customer ID must be provided");
@@ -175,7 +175,7 @@ function bookingCreate(req, res, next){
     // by checking each key in the info object to see if its an array.
     // If there are multiple entries of the same key in a HTTP request body
     // they are formed into an array under the same key.
-    if(Array.isArray(info.pickup_location) || Array.isArray(info.destination) || Array.isArray(info.time) || Array.isArray(info.no_passengers) || Array.isArray(info.customer)){
+    if(Array.isArray(info.pickup_location) || Array.isArray(info.destination) || Array.isArray(info.time) || Array.isArray(info.no_passengers)){
         errors.push("Duplicate Entries Found");
     }
 

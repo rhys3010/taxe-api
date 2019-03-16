@@ -13,11 +13,12 @@ const mongoose = require('mongoose');
   * Data schema for user
 */
 const userSchema = mongoose.Schema({
-  email: {type: String, unique: true, required: true},
-  password: {type: String, required: true},
-  name: {type: String, required: true},
-  role: {type: String, enum: ['Customer', 'Driver', 'Company_Admin'], default: 'Customer'},
-  created_at: {type: Date, default: Date.now}
+    email: {type: String, unique: true, required: true},
+    password: {type: String, required: true},
+    name: {type: String, required: true},
+    role: {type: String, enum: ['Customer', 'Driver', 'Company_Admin'], default: 'Customer'},
+    bookings: [{type: mongoose.Schema.Types.ObjectId, ref: 'booking'}],
+    created_at: {type: Date, default: Date.now}
 });
 
 userSchema.set('toJSON', {virtuals: true});

@@ -23,7 +23,7 @@ module.exports = {
  * @param next
  */
 function create(req, res, next){
-    bookingService.create(req.body)
+    bookingService.create(res.locals.userId, req.body)
         .then(bookingId => res.status(201).json(bookingId))
         .catch(err => next(err));
 }
