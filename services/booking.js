@@ -22,7 +22,8 @@ const Status = require('../helpers/status');
 
 module.exports = {
     create,
-    getById
+    getById,
+    edit
 };
 
 
@@ -50,7 +51,6 @@ async function create(userId, bookingInfo){
         error.name = "CustomerAlreadyHasActiveBookingError";
         throw error;
     }
-
 
     let newBooking;
     // Generate booking ID to return later and store in database
@@ -84,12 +84,13 @@ async function create(userId, bookingInfo){
 
 /**
  * Get a Booking by its ID
- * @param id
+ * @param userId
+ * @param bookingId
  * @returns the booking or not found error
  */
-async function getById(id){
+async function getById(userId, bookingId){
     // Get booking by ID in mongoose and populate the 'customer' and 'driver' field with their respective names
-    const booking = await Booking.findById(id).populate('customer', 'name').populate('driver', 'name');
+    const booking = await Booking.findById(bookingId).populate('customer', 'name').populate('driver', 'name');
 
     // If no booking was found, throw 404 error and return
     if(!booking){
@@ -98,8 +99,71 @@ async function getById(id){
         throw error;
     }
 
+    // If user making the request isn't either the listed customer or driver, throw 403
+    if(!booking.customer._id.equals(userId) && !booking.driver._id.equals(userId)){
+        const error = new Error();
+        error.name = "UnauthorizedViewError";
+        throw error;
+    }
+
     // Return booking
     return booking.toObject();
+}
+
+
+/**
+ * If authorized, edit the specified booking, allowed edits:
+ *
+ * - Change Driver
+ * - Change Time
+ * - Change Status
+ *
+ * @param editorId - The user editing's ID
+ * @param bookingId - The ID of the booking being editted
+ * @param bookingInfo - Updated booking information
+ * @returns {Promise<void>}
+ */
+async function edit(editorId, bookingId, bookingInfo) {
+    // Get the booking
+    const booking = await Booking.findById(bookingId);
+
+    // If no booking matching that id was found, throw 404
+    if (!booking) {
+        const error = new Error();
+        error.name = "BookingNotFoundError";
+        throw error;
+    }
+
+    // Verify that the user editing the booking is either the customer or the driver
+    if (!booking.customer.equals(editorId) && !booking.driver.equals(editorId)) {
+        const error = new Error();
+        error.name = "UnauthorizedEditError";
+        throw error;
+    }
+
+    // Make the edit(s)
+    if (bookingInfo.driver) {
+        // Verify that driver exists
+        let driver = await User.findById(bookingInfo.driver);
+        if(!driver){
+            const error = new Error();
+            error.name = "NoUsersFoundError";
+            throw error;
+        }
+
+        booking.driver = bookingInfo.driver;
+    }
+
+    if (bookingInfo.status) {
+        booking.status = bookingInfo.status;
+    }
+
+    if (bookingInfo.time) {
+        booking.time = bookingInfo.time;
+    }
+
+    // Commit changes to DB
+    await booking.save();
 }
 
 

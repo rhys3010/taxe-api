@@ -27,4 +27,11 @@ router.post('/', [authenticateToken, validate.bookingCreate], bookingController.
  */
 router.get('/:id', [authenticateToken, validate.mongoObjectId], bookingController.getById);
 
+/**
+ * PUT /bookings/:id
+ * Edit individual booking
+ * Middleware: Auth, Validate (Mongo Object Id and Booking Edit)
+ */
+router.put('/:id', [authenticateToken, validate.mongoObjectId, validate.bookingEdit], bookingController.edit);
+
 module.exports = router;

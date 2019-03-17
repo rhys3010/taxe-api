@@ -118,7 +118,7 @@ function errorHandler(error, req, res, next){
     return res.status(403).json({
       "code": 9,
       "message": "Unauthorized Edit Error",
-      "description": "You are not authorized to make changes to this user record."
+      "description": "You are not authorized to make changes to this record."
     });
   }
 
@@ -141,6 +141,17 @@ function errorHandler(error, req, res, next){
       "code": 11,
       "message": "Customer Already Has an Active Booking",
       "description": "The Customer provided already has an active booking, therefore a new one could not be processed."
+    });
+  }
+
+  /**
+   * UnauthorizedViewError
+   */
+  if(error.name === "UnauthorizedViewError"){
+    return res.status(403).json({
+      "code": 12,
+      "message": "Unauthorized View Error",
+      "description": "You are not authorized to view this record."
     });
   }
 

@@ -14,7 +14,8 @@ module.exports = {
     userCreate,
     userEdit,
     mongoObjectId,
-    bookingCreate
+    bookingCreate,
+    bookingEdit
 };
 
 /**
@@ -187,6 +188,50 @@ function bookingCreate(req, res, next){
     // Make sure that the provided number of passengers is valid
     if(info.no_passengers < 1){
         errors.push("Must have at least one passenger");
+    }
+
+    // If there are errors, throw them
+    if(errors.length !== 0){
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    next();
+}
+
+/**
+ * Validate input for booking edit
+ * @param req
+ * @param res
+ * @param next
+ */
+function bookingEdit(req, res, next){
+    // Updated user info from http body
+    const info = req.body;
+
+    // Keep a list of validation errors to output
+    let errors = [];
+
+    // If no updated information was provided, throw error
+    if(!info.driver && !info.status && !info.time){
+        errors.push("No updated information found: Update-able fields include: Time, Status and Driver");
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    // Make sure that there are no duplicate fields
+    // by checking each key in the info object to see if its an array.
+    // If there are multiple entries of the same key in a HTTP request body
+    // they are formed into an array under the same key.
+    if(Array.isArray(info.driver) || Array.isArray(info.time) || Array.isArray(info.status)){
+        errors.push("Duplicate Entries Found");
+    }
+
+    // Make sure the time is valid
+    if(info.time){
+        if(!isValidTime(info.time)){
+            errors.push("Booking time cannot be in the past, further than " + MAX_HOURS_FUTURE + " hours away, or sooner than " + MIN_MINUTES_NOTICE + " minutes away");
+        }
     }
 
     // If there are errors, throw them

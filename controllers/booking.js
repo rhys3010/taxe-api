@@ -12,7 +12,8 @@ const bookingService = require('../services/booking');
 
 module.exports = {
     create,
-    getById
+    getById,
+    edit
 };
 
 /**
@@ -35,7 +36,19 @@ function create(req, res, next){
  * @param next
  */
 function getById(req, res, next){
-    bookingService.getById(req.params.id)
+    bookingService.getById(res.locals.userId, req.params.id)
         .then(booking => res.status(200).json(booking))
+        .catch(err => next(err));
+}
+
+/**
+ * Edit (if authorized) a booking
+ * @param req
+ * @param res
+ * @param next
+ */
+function edit(req, res, next){
+    bookingService.edit(res.locals.userId, req.params.id, req.body)
+        .then(() => res.status(200).json({message: "Booking Successfully Edited"}))
         .catch(err => next(err));
 }
