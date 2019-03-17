@@ -156,6 +156,18 @@ function errorHandler(error, req, res, next){
   }
 
   /**
+   * InvalidRoleError
+   * (Used mostly for verifying roles)
+   */
+  if(error.name === "InvalidRoleError"){
+    return res.status(403).json({
+      "code": 13,
+      "message": "Invalid Role Error",
+      "description": "The User does not meet the role requirements to perform this task"
+    });
+  }
+
+  /**
     * Default case, internal server error with details of error
    * TODO: Don't return error.message in production
   */

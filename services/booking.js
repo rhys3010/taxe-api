@@ -99,12 +99,31 @@ async function getById(userId, bookingId){
         throw error;
     }
 
+
     // If user making the request isn't either the listed customer or driver, throw 403
-    if(!booking.customer._id.equals(userId) && !booking.driver._id.equals(userId)){
+    // Note: although not ideal, driver or customer COULD be null at this point so messy if statements
+    // needed
+    // TODO: Consider moving to middleware?
+    if(!booking.customer){
         const error = new Error();
         error.name = "UnauthorizedViewError";
         throw error;
     }
+
+    if(!booking.driver){
+        if (!booking.customer._id.equals(userId)) {
+            const error = new Error();
+            error.name = "UnauthorizedViewError";
+            throw error;
+        }
+    }else{
+        if(!booking.customer._id.equals(userId) && !booking.driver._id.equals(userId)){
+            const error = new Error();
+            error.name = "UnauthorizedViewError";
+            throw error;
+        }
+    }
+
 
     // Return booking
     return booking.toObject();
@@ -135,10 +154,25 @@ async function edit(editorId, bookingId, bookingInfo) {
     }
 
     // Verify that the user editing the booking is either the customer or the driver
-    if (!booking.customer.equals(editorId) && !booking.driver.equals(editorId)) {
+    // TODO: Consider moving to middleware?
+    if(!booking.customer){
         const error = new Error();
         error.name = "UnauthorizedEditError";
         throw error;
+    }
+
+    if(!booking.driver){
+        if (!booking.customer.equals(editorId)) {
+            const error = new Error();
+            error.name = "UnauthorizedEditError";
+            throw error;
+        }
+    }else{
+        if (!booking.customer.equals(editorId) && !booking.driver.equals(editorId)) {
+            const error = new Error();
+            error.name = "UnauthorizedEditError";
+            throw error;
+        }
     }
 
     // Make the edit(s)
@@ -148,6 +182,13 @@ async function edit(editorId, bookingId, bookingInfo) {
         if(!driver){
             const error = new Error();
             error.name = "NoUsersFoundError";
+            throw error;
+        }
+
+        // Verify that driver is actually a driver
+        if(driver.role === 'Customer'){
+            const error = new Error();
+            error.name = "InvalidRoleError";
             throw error;
         }
 

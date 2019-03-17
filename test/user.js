@@ -462,7 +462,7 @@ describe('Users', function(){
                 .set("Authorization", token)
                 .send(userEdits)
                 .end((err, res) => {
-                    res.should.have.status(403)
+                    res.should.have.status(403);
                     res.body.should.have.property('code').eql(9);
                     done();
                 });
@@ -486,7 +486,7 @@ describe('Users', function(){
                 .set("Authorization", validToken)
                 .send(userEdits)
                 .end((err, res) => {
-                    res.should.have.status(400)
+                    res.should.have.status(400);
                     res.body.should.have.property('code').eql(7);
                     done();
                 });
