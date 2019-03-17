@@ -9,6 +9,9 @@
 | /users/:id     | GET          | [Retrieve User](#getUser)            |
 | /users/:id     | PUT          | [Update User](#updateUser)           |
 | /users/login   | POST         | [Retrieve Access Token](#login)      |
+| /bookings      | POST         | [Create Booking](#newBooking)        |
+| /bookings/:id  | GET          | [Retrieve Booking](#getBooking)      |
+| /bookings/:id  | PUT          | [Update Booking](#updateBooking)     |
 
 
 ### <a name="getAllUsers"></a> Retrieve All Users ###
@@ -120,6 +123,66 @@ Sends Basic Auth credentials (email and password) and if valid grants a 24 hour 
 }
 ```
 
+### <a name="newBooking"></a> Create Booking ###
+Creates a new Booking record from information provided in request body.
+
+#### Request Headers ####
+N/A
+
+#### Request Body ####
+| Attribute                 | Description                                                   |
+|:-------------------------:|:-------------------------------------------------------------:|
+| ```pickup_location```     | (required) the pickup location of the new booking             |
+| ```destination```         | (required) the destination of the new booking                 |
+| ```time```                | (required) the desired time of the new booking (ISO Format)   |
+| ```no_passengers```       | (required) the number of passengers for the new booking       |
+
+### <a name="getBooking"></a> Retrieve Booking ###
+
+Retrieves information about a given booking, based on the provided ID.
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+#### Request Body ####
+N/A
+
+#### Example Response ####
+```
+{
+    "_id": "5c8e424c29b15f000813aa00",
+    "pickup_location": "Fferm Penglais",
+    "destination": "Ynyslas Beach",
+    "time": "2019-03-17T13:53:00.000Z",
+    "no_passengers": 1,
+    "customer": {
+        "_id": "5c8e418129b15f000813a9fe",
+        "name": "Rhys Evans"
+    },
+    "__v": 0,
+    "created_at": "2019-03-17T12:49:16.078Z",
+    "status": "Pending"
+}
+```
+
+### <a name="updateBooking"></a> Update Booking ###
+
+Updates a booking's status, time or driver based on the booking ID as a parameter
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+#### Request Body ####
+| Attribute                 | Description                                 |
+|:-------------------------:|:-------------------------------------------:|
+| ```status```              | (optional) the new status of the booking    |
+| ```time```                | (optional) the new time of the booking      |
+| ```driver```              | (optional) the new driver of the booking    |
+
 ## Errors ##
 
 ### InvalidTokenError ###
@@ -179,12 +242,39 @@ Thrown if the ID passed in a /users/:id request is not a valid MongoDB Object ID
 | 8          | 400 (Bad Request)  |
 
 ### UnauthorizedEditError ###
-Thrown if an attempt to edit  a user record is made using a token that does not belong to the subject of the edit.
+Thrown if an attempt to edit  a record is made using a token that does not have the required permissions.
 
 | Code       | HTTP Status        |
 |:----------:|:------------------:|
 | 9          | 403 (Forbidden)    |
 
+### BookingNotFoundError ###
+Thrown if a booking could not be found within the database
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 10         | 404 (Not Found)    |
+
+### CustomerAlreadyHasActiveBookingError ###
+Thrown if a customer attempts to create a booking when they already have an active booking on their account.
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 11         | 403 (Forbidden)    |
+
+### UnauthorizedViewError ###
+Thrown if an attempt to view a record is made using a token that does not have the required permissions.
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 12         | 403 (Forbidden)    |
+
+### InvalidRoleError ###
+Thrown if a user attempts to perform a task that is not allowed within their current role, i.e. setting a customer as the driver of a booking.
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 13         | 403 (Forbidden)    |
 
 
 
