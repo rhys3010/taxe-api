@@ -43,9 +43,16 @@ router.get('/:id', [authenticateToken, validate.mongoObjectId], userController.g
 /**
   * PUT /users/:id
   * Edit individual user record
- * Middleware: Auth, Validate (Mongo Object Id and User Edit)
+  * Middleware: Auth, Validate (Mongo Object Id and User Edit)
 */
 router.put('/:id', [authenticateToken, validate.mongoObjectId, validate.userEdit], userController.edit);
+
+/**
+ * GET /users/:id/bookings
+ * Retrieve a list (potentially filtered) of all the user's bookings
+ * Middleware: Auth, Validate (Mongo Object ID)
+ */
+router.get('/:id/bookings', [authenticateToken, validate.mongoObjectId], userController.getBookings);
 
 
 module.exports = router;

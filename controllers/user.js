@@ -18,7 +18,8 @@ module.exports = {
   register,
   getById,
   getAll,
-  edit
+  edit,
+  getBookings
 };
 
 /**
@@ -71,7 +72,7 @@ function getById(req, res, next){
 }
 
 /**
-  * Retrieves all ussers and prints their name and id
+  * Retrieves all users and prints their name and id
   * @param req - HTTP request object
   * @param res - HTTP repsonse object
   * @param next - next middleware to be executed
@@ -93,5 +94,16 @@ function edit(req, res, next){
   userService.edit(res.locals.userId, req.params.id, req.body)
       .then(() => res.status(200).json({message: "User Successfully Edited"}))
       .catch(err => next(err));
+}
 
+/**
+ * Retrieves all of the user's bookings
+ * @param req
+ * @param res
+ * @param next
+ */
+function getBookings(req, res, next){
+  userService.getUserBookings(req.params.id, req.query.limit)
+      .then(bookings => res.status(200).json(bookings))
+      .catch(err => next(err));
 }

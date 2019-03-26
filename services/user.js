@@ -24,7 +24,8 @@ module.exports = {
   create,
   getById,
   getAll,
-  edit
+  edit,
+  getUserBookings
 };
 
 /**
@@ -165,4 +166,43 @@ async function edit(editorId, userId, userInfo){
 
   // Commit changes to DB
   await user.save();
+}
+
+/**
+ * If authorized, return a *filtered* list of all of the user's
+ * bookings
+ * @param userId
+ * @param limit
+ * @returns {Promise<void>}
+ */
+async function getUserBookings(userId, limit){
+  // Get the user
+  // TODO: Slice using mongoose so that only the *needed* bookings are retrieved
+  // ^ https://github.com/Automattic/mongoose/issues/5737
+  const user = await User.findById(userId).populate('bookings');
+
+  // If no user matching that ID was found, throw an error
+  if(!user){
+    const error = new Error();
+    error.name = "NoUsersFoundError";
+    throw error;
+  }
+
+  // Verify that the record belongs to the user
+  if (!user._id.equals(userId)) {
+    const error = new Error();
+    error.name = "UnauthorizedViewError";
+    throw error;
+  }
+
+  // Sort the bookings by datetime in descending order
+  // Array is already 'sorted' given the order the booking was added
+  // to the account, so just reverse the array. *cough* Bodge *cough*
+  let bookings = user.bookings.reverse();
+
+  // Limit the array by the number provided
+  bookings = bookings.slice(0, limit);
+
+  // Return the list of bookings
+  return bookings;
 }
