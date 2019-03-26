@@ -604,11 +604,14 @@ describe('Users', function(){
 
         // Create mongoose ID to apply to user
         let templateUserId = mongoose.Types.ObjectId();
+        // Create a password hash
+        let userPassword = 'qwerty123';
+
         // Template to create new user
         let userTemplate = {
             email: "johndoe@gmail.com",
             name: "John Doe",
-            password: "examplepassword12345",
+            password: bcrypt.hashSync(userPassword, 10),
             role: "Customer",
             _id: templateUserId
         };
@@ -617,8 +620,7 @@ describe('Users', function(){
         it('responds with 401 status and returns MissingTokenError', function(done){
             // Template for user account edits
             let userEdits = {
-                name: "Jane Doe",
-                password: "newpassword12345"
+                name: "Jane Doe"
             };
 
             let user = new User(userTemplate);
@@ -643,8 +645,7 @@ describe('Users', function(){
         it('responds with 404 status and user not found error is returned', function(done){
             // Template for user account edits
             let userEdits = {
-                name: "Jane Doe",
-                password: "newpassword12345"
+                name: "Jane Doe"
             };
             // Create and save new user
             let  user = new User(userTemplate);
@@ -667,8 +668,7 @@ describe('Users', function(){
         it('responds with 403 status and returns UnauthorizedEditError', function(done){
             // Template for user account edits
             let userEdits = {
-                name: "Jane Doe",
-                password: "newpassword12345"
+                name: "Jane Doe"
             };
             // Create and save new user
             let user = new User(userTemplate);
@@ -714,7 +714,8 @@ describe('Users', function(){
             // Template for user account edits
             let userEdits = {
                 name: "JaneDoe!!",
-                password: "badpassword"
+                password: "badpassword",
+                old_password: userPassword
             };
 
             // Create and save user
@@ -736,13 +737,42 @@ describe('Users', function(){
                 });
         });
 
+        // Attempt to edit account with an old password that doesn't match
+        it('responds with 403 status and returns AuthenticationFailedError', function(done){
+            // Template for user account edits
+            let userEdits = {
+                name: "Jane Doe",
+                password: "newpassword12345",
+                old_password: "passwordwillnotmatch"
+            };
+
+            // Create and save user
+            let user = new User(userTemplate);
+            user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: userTemplate._id, role: userTemplate.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .set("Authorization", validToken)
+                .send(userEdits)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property("code").eql(6);
+                    done();
+                });
+        });
+
         // Successfully Edit account
         it('responds with 200 status and returns success message', function(done){
 
             // Template for user account edits
             let userEdits = {
                 name: "Jane Doe",
-                password: "newpassword12345"
+                password: "newpassword12345",
+                old_password: userPassword
             };
 
             // Create and save user

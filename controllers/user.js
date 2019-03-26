@@ -32,6 +32,13 @@ module.exports = {
 function authenticate(req, res, next){
   // Get user's credentials from the request header
   const credentials = auth(req);
+  // If credentials is null, throw error
+  if(!credentials){
+    const error = new Error();
+    error.name = "MissingAuthenticationError";
+    throw error;
+  }
+
   userService.authenticate(credentials.name, credentials.pass)
     .then(function(user){
       if(user){

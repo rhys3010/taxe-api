@@ -15,6 +15,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../helpers/db');
 const mongoose = require('mongoose');
 const User = db.User;
+const auth = require('basic-auth');
 
 /**
   * Export all user tasks
@@ -160,7 +161,14 @@ async function edit(editorId, userId, userInfo){
   }
 
   if(userInfo.password){
-    // Hash the password
+    // Verify that user has also provided a *valid* old password
+    if(!userInfo.old_password || !bcrypt.compareSync(userInfo.old_password, user.password)){
+      const error = new Error();
+      error.name = "AuthenticationFailedError";
+      throw error;
+    }
+
+    // Hash and store the new password
     user.password = bcrypt.hashSync(userInfo.password, 10);
   }
 
