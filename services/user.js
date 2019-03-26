@@ -172,10 +172,11 @@ async function edit(editorId, userId, userInfo){
  * If authorized, return a *filtered* list of all of the user's
  * bookings
  * @param userId
+ * @param viewerId
  * @param limit
  * @returns {Promise<void>}
  */
-async function getUserBookings(userId, limit){
+async function getUserBookings(userId, viewerId, limit){
   // Get the user
   // TODO: Slice using mongoose so that only the *needed* bookings are retrieved
   // ^ https://github.com/Automattic/mongoose/issues/5737
@@ -189,9 +190,16 @@ async function getUserBookings(userId, limit){
   }
 
   // Verify that the record belongs to the user
-  if (!user._id.equals(userId)) {
+  if (!user._id.equals(viewerId)) {
     const error = new Error();
     error.name = "UnauthorizedViewError";
+    throw error;
+  }
+
+  // If user has no bookings, return Error
+  if(user.bookings.length === 0){
+    const error = new Error();
+    error.name = "BookingNotFoundError";
     throw error;
   }
 

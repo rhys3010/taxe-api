@@ -12,6 +12,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const should = chai.should();
 const User = require('../helpers/db').User;
+const Booking = require('../helpers/db').Booking;
 const URI_PREFIX = "/api/v1";
 const jwt = require('jsonwebtoken');
 const config = require('../config');
@@ -384,6 +385,218 @@ describe('Users', function(){
     });
 
     /**
+     * Test GET /users/:id/bookings route
+     * (Get all user's bookings)
+     */
+    describe('/GET users/:id/bookings', function(){
+
+        // Attempt to get a list of bookings from an account that doesn't exist
+        it('responds with 404 error and returns NoUsersFoundError', function(done){
+
+            let userId = mongoose.Types.ObjectId();
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + userId + "/bookings")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(4);
+                    done();
+                });
+
+        });
+
+
+        // Attempt to get a list of bookings from an account that doesn't have any
+        it('responds with 404 error and returns BookingNotFoundError', function(done){
+            // Create a user with no bookings
+            let newUserId = mongoose.Types.ObjectId();
+            let newUser = {
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "examplepassword12345",
+                role: "Customer",
+                _id: newUserId
+            };
+
+            let user = new User(newUser);
+            user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: newUser._id, role: newUser.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + newUserId + "/bookings")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(10);
+                    done();
+                });
+
+        });
+
+        // Attempt to get a list of bookings from an account that doesn't belong to you
+        it('responds with 403 error and returns UnauthorizedViewError', function(done){
+            // Create an account
+            let newUserId = mongoose.Types.ObjectId();
+            let newBookingId = mongoose.Types.ObjectId();
+
+            // Create a new booking to place in account
+            let newBooking = {
+                pickup_location: "Foo",
+                destination: "Bar",
+                time: new Date(),
+                customer: newUserId,
+                no_passengers: 1,
+                _id: newBookingId
+            };
+
+            let booking = new Booking(newBooking);
+            booking.save();
+
+            let newUser = {
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "examplepassword12345",
+                role: "Customer",
+                bookings: [newBookingId],
+                _id: newUserId
+            };
+
+            let user = new User(newUser);
+            user.save();
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + newUserId + "/bookings")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(12);
+                    done();
+                });
+        });
+
+        // Attempt to get a list of bookings successfully
+        it('responds with 200 status and returns a list of bookings', function(done){
+            // Create an account
+            let newUserId = mongoose.Types.ObjectId();
+            let newBookingId = mongoose.Types.ObjectId();
+            let newBooking2Id = mongoose.Types.ObjectId();
+
+            // Create 2 bookings
+            let newBooking = {
+                pickup_location: "Foo",
+                destination: "Bar",
+                time: new Date(),
+                customer: newUserId,
+                no_passengers: 1,
+                _id: newBookingId
+            };
+
+            let newBooking2 = {
+                pickup_location: "Gaz",
+                destination: "Baz",
+                time: new Date(),
+                customer: newUserId,
+                no_passengers: 1,
+                _id: newBooking2Id
+            };
+
+            let booking = new Booking(newBooking);
+            booking.save();
+
+            let booking2 = new Booking(newBooking2);
+            booking2.save();
+
+            let newUser = {
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "examplepassword12345",
+                role: "Customer",
+                bookings: [newBookingId, newBooking2Id],
+                _id: newUserId
+            };
+
+            let user = new User(newUser);
+            user.save();
+
+            // Create a valid token to use to access bookings
+            let validToken = jwt.sign({sub: newUser._id, role: newUser.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + newUserId + "/bookings")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.length(2);
+                    done();
+                });
+
+        });
+
+        // Attempt to get a list of booking and successfully limit the list
+        it('responds with status 200 and returns a list with only a single booking', function(done){
+            // Create an account
+            let newUserId = mongoose.Types.ObjectId();
+            let newBookingId = mongoose.Types.ObjectId();
+            let newBooking2Id = mongoose.Types.ObjectId();
+
+            // Create 2 bookings
+            let newBooking = {
+                pickup_location: "Foo",
+                destination: "Bar",
+                time: new Date(),
+                customer: newUserId,
+                no_passengers: 1,
+                _id: newBookingId
+            };
+
+            let newBooking2 = {
+                pickup_location: "Gaz",
+                destination: "Baz",
+                time: new Date(),
+                customer: newUserId,
+                no_passengers: 1,
+                _id: newBooking2Id
+            };
+
+            let booking = new Booking(newBooking);
+            booking.save();
+
+            let booking2 = new Booking(newBooking2);
+            booking2.save();
+
+            let newUser = {
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "examplepassword12345",
+                role: "Customer",
+                bookings: [newBookingId, newBooking2Id],
+                _id: newUserId
+            };
+
+            let user = new User(newUser);
+            user.save();
+
+            // Create a valid token to use to access bookings
+            let validToken = jwt.sign({sub: newUser._id, role: newUser.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/users/" + newUserId + "/bookings?limit=1")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.length(1);
+                    done();
+                });
+        });
+    });
+
+    /**
      * Test PUT /users/:id route
      * (Edit User)
      */
@@ -410,6 +623,10 @@ describe('Users', function(){
 
             let user = new User(userTemplate);
             user.save();
+
+            // Create token that matches the user's ID
+            let validToken = jwt.sign({sub: userTemplate._id, role: userTemplate.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
 
             chai.request(app)
                 .put(URI_PREFIX + "/users/" + userTemplate._id)
