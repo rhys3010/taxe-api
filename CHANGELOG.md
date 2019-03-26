@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to the API will ibe documented in this file .
 
+## [0.2.1] - 2019-03-26
+### Updated
+- User's Bookings route to view a list of all the user's bookings.
+- User controller to support new /bookings sub-route
+- User service to support the new route
+- User unit tests to test the new route and password changing
+- Error Handling file to handle missing basic-auth credentials
+- Edit User service to enforce the provision of previous password
+
 ## [0.2.0] - 2019-03-17
 ### Added
 - Bookings Route to support POST, GET and PUT HTTP methods

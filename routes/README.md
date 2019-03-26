@@ -2,16 +2,17 @@
 
 ## Routes ##
 
-| URL            | HTTP Method  | Functionality                        |
-|:--------------:|:------------:|:------------------------------------:|
-| /users         | GET          | [Retrieve All Users](#getAllUsers)   |
-| /users         | POST         | [Create User](#newUser)              |
-| /users/:id     | GET          | [Retrieve User](#getUser)            |
-| /users/:id     | PUT          | [Update User](#updateUser)           |
-| /users/login   | POST         | [Retrieve Access Token](#login)      |
-| /bookings      | POST         | [Create Booking](#newBooking)        |
-| /bookings/:id  | GET          | [Retrieve Booking](#getBooking)      |
-| /bookings/:id  | PUT          | [Update Booking](#updateBooking)     |
+| URL                  | HTTP Method  | Functionality                           |
+|:--------------------:|:------------:|:---------------------------------------:|
+| /users               | GET          | [Retrieve All Users](#getAllUsers)      |
+| /users               | POST         | [Create User](#newUser)                 |
+| /users/:id           | GET          | [Retrieve User](#getUser)               |
+| /users/:id           | PUT          | [Update User](#updateUser)              |
+| /users/login         | POST         | [Retrieve Access Token](#login)         |
+| /users/:id/bookings  | GET          | [Retrieve User's Bookings](#getBookings)|
+| /bookings            | POST         | [Create Booking](#newBooking)           |
+| /bookings/:id        | GET          | [Retrieve Booking](#getBooking)         |
+| /bookings/:id        | PUT          | [Update Booking](#updateBooking)        |
 
 
 ### <a name="getAllUsers"></a> Retrieve All Users ###
@@ -91,8 +92,9 @@ Updates a user's name or password based on the user ID passed as a parameter.
 #### Request Body ####
 | Attribute                 | Description                            |
 |:-------------------------:|:--------------------------------------:|
-| ```name```                | (optional) the new user's full name    |
-| ```password```            | (optional) the new user's password     |
+| ```name```                | (optional) the user's new full name    |
+| ```password```            | (optional) the user's new password     |
+| ```old_password```        | (optional) the user's old password     |
 
 
 ### <a name="login"></a> Retrieve Access Token ###
@@ -121,6 +123,48 @@ Sends Basic Auth credentials (email and password) and if valid grants a 24 hour 
     "role": "Customer",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1YzdjNjQwNzk2YTViMTAwMDhlMDU2Y2UiLCJyb2xlIjoiQ3VzdG9tZXIiLCJpYXQiOjE1NTE3MTY4MjMsImV4cCI6MTU1MTgwMzIyM30.WaMrF646juSZmKUnrjXZAnSrwsgcI_A5J627llI2CRc"
 }
+```
+
+### <a name="getBookings"></a> Retrieve User's Bookings ###
+
+Retrieves a list of the user's bookings, can pass a query parameter to limit results.
+
+#### Request Headers ####
+| Attribute                 | Description                           |
+|:-------------------------:|:-------------------------------------:|
+| ```Authorization```       | (required) the authorization token    |
+
+#### Request Body ####
+N/A
+
+#### Example Response ####
+```
+[
+    {
+        "_id": "5c9abae34b5cee00080eeae7",
+        "pickup_location": "Aberystwyth Pier",
+        "destination": "Cwrt Mawr",
+        "time": "2019-03-27T00:50:42.000Z",
+        "no_passengers": 2,
+        "customer": "5c8ee3eae99c4400079f87bb",
+        "__v": 0,
+        "created_at": "2019-03-26T23:50:59.567Z",
+        "status": "Pending",
+        "id": "5c9abae34b5cee00080eeae7"
+    },
+    {
+        "_id": "5c9a83359e3dd800077f7c76",
+        "pickup_location": "Bethesda",
+        "destination": "Bangor",
+        "time": "2019-03-26T21:05:13.000Z",
+        "no_passengers": 1,
+        "customer": "5c8ee3eae99c4400079f87bb",
+        "__v": 0,
+        "created_at": "2019-03-26T19:53:25.991Z",
+        "status": "Cancelled",
+        "id": "5c9a83359e3dd800077f7c76"
+    }
+]
 ```
 
 ### <a name="newBooking"></a> Create Booking ###
@@ -276,8 +320,12 @@ Thrown if a user attempts to perform a task that is not allowed within their cur
 |:----------:|:------------------:|
 | 13         | 403 (Forbidden)    |
 
+### MissingAuthenticationError ###
+Thrown if a user attempts to log in with an invalid or missing Basic Auth string in the request header.
 
-
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 14         | 401 (Unauthorized) |
 
 
 

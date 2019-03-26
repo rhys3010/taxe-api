@@ -171,7 +171,7 @@ function errorHandler(error, req, res, next){
    * MissingAuthenticationError
    */
   if(error.name === "MissingAuthenticationError"){
-    return res.status(401).json({
+    return res.status(400).json({
       "code": 14,
       "message": "Missing Authentication Error",
       "description": "The request is missing basic authentication"
