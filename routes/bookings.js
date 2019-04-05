@@ -12,13 +12,15 @@ const router = require('express').Router();
 const bookingController = require('../controllers/booking');
 const authenticateToken = require('../middlewares/authenticateToken');
 const validate = require('../middlewares/validate');
+const authorizeRole = require('../middlewares/authorizeRole');
+const Role = require('../helpers/role');
 
 /**
  * POST /bookings
  * Create a new booking
- * Middleware: Auth, Validate
+ * Middleware: Auth, Validate, AuthorizeRole (Customer)
  */
-router.post('/', [authenticateToken, validate.bookingCreate], bookingController.create);
+router.post('/', [authenticateToken, validate.bookingCreate, authorizeRole(Role.Customer)], bookingController.create);
 
 /**
  * GET /bookings/:id
