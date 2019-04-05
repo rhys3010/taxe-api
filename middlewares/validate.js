@@ -95,7 +95,7 @@ function userEdit(req, res, next){
     let errors = [];
 
     // If no updated password or name were provided, throw error
-    if(!info.name && !info.password){
+    if(!info.name && !info.password && !info.available && !info.role){
         errors.push("No updated information found");
         errors.name = "ValidationError";
         throw errors;
@@ -213,8 +213,8 @@ function bookingEdit(req, res, next){
     let errors = [];
 
     // If no updated information was provided, throw error
-    if(!info.driver && !info.status && !info.time){
-        errors.push("No updated information found: Update-able fields include: Time, Status and Driver");
+    if(!info.driver && !info.status && !info.time && !info.note){
+        errors.push("No updated information found: Update-able fields include: Time, Status, Driver and Notes");
         errors.name = "ValidationError";
         throw errors;
     }

@@ -15,6 +15,7 @@ const Booking = db.Booking;
 const User = db.User;
 const mongoose = require('mongoose');
 const Status = require('../helpers/status');
+const Role = require('../helpers/role');
 
 /**
  * Export all the tasks
@@ -186,7 +187,7 @@ async function edit(editorId, bookingId, bookingInfo) {
         }
 
         // Verify that driver is actually a driver
-        if(driver.role === 'Customer'){
+        if(driver.role !== Role.Driver){
             const error = new Error();
             error.name = "InvalidRoleError";
             throw error;
@@ -195,13 +196,27 @@ async function edit(editorId, bookingId, bookingInfo) {
         booking.driver = bookingInfo.driver;
     }
 
+    // Update Status
     if (bookingInfo.status) {
+        // Add Note to Booking
+        bookingInfo.note = "Booking Status Changed From " + booking.status + " to " + bookingInfo.status;
         booking.status = bookingInfo.status;
     }
 
+    // Update Time
     if (bookingInfo.time) {
         booking.time = bookingInfo.time;
     }
+
+    // Add Note
+    if(bookingInfo.note){
+        await Booking.findOneAndUpdate(
+            {_id: booking.id},
+            {$push: {notes: bookingInfo.note}}
+        );
+    }
+
+    // TODO: Send Notification
 
     // Commit changes to DB
     await booking.save();
