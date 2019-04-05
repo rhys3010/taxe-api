@@ -15,7 +15,9 @@ const bcrypt = require('bcryptjs');
 const db = require('../helpers/db');
 const mongoose = require('mongoose');
 const User = db.User;
+const Company = db.Company;
 const auth = require('basic-auth');
+const Role = require('../helpers/role');
 
 /**
   * Export all user tasks
@@ -155,11 +157,13 @@ async function edit(editorId, userId, userInfo){
     throw error;
   }
 
-  // Make the edit(s)
+  // Make the edit(s)..
+  // Update name
   if(userInfo.name){
     user.name = userInfo.name;
   }
 
+  // Update Password
   if(userInfo.password){
     // Verify that user has also provided a *valid* old password
     if(!userInfo.old_password || !bcrypt.compareSync(userInfo.old_password, user.password)){
@@ -170,6 +174,29 @@ async function edit(editorId, userId, userInfo){
 
     // Hash and store the new password
     user.password = bcrypt.hashSync(userInfo.password, 10);
+  }
+
+  // Update Availability
+  if(userInfo.available){
+    user.available = available;
+  }
+
+  // Change from Driver to Customer
+  // (Quit Company)
+  if(userInfo.role){
+    // If the user is currently a driver, and is trying to change to customer
+    if(userInfo.role === Role.Customer && user.role === Role.Driver){
+      // Set their role
+      user.role = Role.Customer;
+      // Remove company reference
+      user.company = null;
+      // TODO: Remove self from company via service?
+    }else{
+      // Throw role error
+      const error = new Error();
+      error.name = "InvalidRoleError";
+      throw error;
+    }
   }
 
   // Commit changes to DB

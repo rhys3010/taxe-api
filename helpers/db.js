@@ -38,5 +38,6 @@ if(process.env.NODE_ENV === 'test'){
 
 module.exports = {
   User: require('../models/user'),
-  Booking: require('../models/booking')
+  Booking: require('../models/booking'),
+  Company: require('../models/company')
 };

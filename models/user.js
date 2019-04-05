@@ -18,6 +18,8 @@ const userSchema = mongoose.Schema({
     name: {type: String, required: true},
     role: {type: String, enum: ['Customer', 'Driver', 'Company_Admin'], default: 'Customer'},
     bookings: [{type: mongoose.Schema.Types.ObjectId, ref: 'booking'}],
+    available: {type: Boolean, default: false, required: true},
+    company: {type: mongoose.Schema.Types.ObjectId, ref: 'company'},
     created_at: {type: Date, default: Date.now}
 });
 
