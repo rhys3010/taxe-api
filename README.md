@@ -1,5 +1,5 @@
 
-<img src="https://i.imgur.com/ZpCtOo4.png" width="120" height="120">
+<img src="https://i.imgur.com/EK1RSH9.png" width="120" height="120">
 
 # Tax-E REST API &middot; ![Build Status](https://api.travis-ci.com/rhys3010/taxe-api.svg?token=jQp14CGybcZTPyDpbd5T&branch=master)
 
