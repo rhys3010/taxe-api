@@ -94,6 +94,8 @@ async function create(userId, bookingInfo){
 async function getById(userId, userRole, bookingId){
     // Get booking by ID in mongoose and populate the 'customer' and 'driver' field with their respective names
     const booking = await Booking.findById(bookingId).populate('customer', 'name').populate('driver', 'name');
+    // Get the user
+    const user = await User.findById(userId);
 
     // If no booking was found, throw 404 error and return
     if(!booking){
@@ -102,10 +104,11 @@ async function getById(userId, userRole, bookingId){
         throw error;
     }
 
-    // If user is not authed, return UnauthorizedEditError
-    if(!isUserAuthorized(booking, userId, userRole)){
+    const unpopulatedBooking = await Booking.findById(bookingId);
+    // If user is not authed, return UnauthorizedViewError
+    if(!isUserAuthorized(unpopulatedBooking, user)){
         const error = new Error();
-        error.name = "UnauthorizedEditError";
+        error.name = "UnauthorizedViewError";
         throw error;
     }
 
@@ -131,6 +134,8 @@ async function getById(userId, userRole, bookingId){
 async function edit(editorId, editorRole, bookingId, bookingInfo) {
     // Get the booking
     const booking = await Booking.findById(bookingId);
+    // Get the user
+    const user = await User.findById(editorId);
 
     // If no booking matching that id was found, throw 404
     if(!booking) {
@@ -140,7 +145,7 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
     }
 
     // If user is not authed, return UnauthorizedEditError
-    if(!isUserAuthorized(booking, editorId, editorRole)){
+    if(!isUserAuthorized(booking, user)){
         const error = new Error();
         error.name = "UnauthorizedEditError";
         throw error;
@@ -149,7 +154,7 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
     // Make the edit(s)
 
     // Update Company
-    if(bookingInfo.company){
+    if(bookingInfo.company && editorRole !== Role.Customer){
         // Verify that company exists
         let company = await Company.findById(bookingInfo.company);
         if(!company){
@@ -162,7 +167,7 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
     }
 
     // Update Driver
-    if(bookingInfo.driver) {
+    if(bookingInfo.driver && editorRole !== Role.Customer) {
         // Verify that driver exists
         let driver = await User.findById(bookingInfo.driver);
         if(!driver){
@@ -183,8 +188,8 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
         booking.driver = bookingInfo.driver;
     }
 
-    // Update Status
-    if(bookingInfo.status) {
+    // Update Status (if not customer)
+    if(bookingInfo.status && editorRole !== Role.Customer) {
         // Add Note to Booking
         bookingInfo.note = "Booking Status Changed From " + booking.status + " to " + bookingInfo.status;
         // If the booking status is being changed to 'Pending', it is being returned to the collective field
@@ -251,34 +256,34 @@ function isBookingActive(booking){
  * Function to decide whether the user viewing / altering a booking
  * is authorized to do so
  * @param booking
- * @param userId
- * @param userRole
+ * @param user
  */
-async function isUserAuthorized(booking, userId, userRole){
+function isUserAuthorized(booking, user){
     // If the booking's status is pending:
     // Any COMPANY ADMIN can edit/view the booking
     // If the booking is any other status:
     // Only customer, driver and company admin of the booking' company can edit/view
 
+    if(!user){
+        return false;
+    }
+
     // If the user is the customer or the driver, they are authed unconditionally
-    if(userId.equals(booking.customer) || userId.equals(booking.driver)){
+    if(user._id.equals(booking.customer) || user._id.equals(booking.driver)){
         return true;
     }
 
     // If the status is pending, impose the relevant rules
     if(booking.status === Status.PENDING){
         // If the user is a company admin, auth them.
-        if(userRole === Role.Company_Admin){
+        if(user.role === Role.Company_Admin){
             return true;
         }
     }else{
         // If status is not pending, allow company admin of the booking to
         // view /edit
-        const user = await User.findById(userId);
-        if(user){
-            if(userRole === Role.Company_Admin && user.company === booking.company){
-                return true;
-            }
+        if(user.role === Role.Company_Admin && user.company === booking.company){
+            return true;
         }
     }
 
