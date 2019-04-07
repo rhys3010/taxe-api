@@ -213,8 +213,8 @@ function bookingEdit(req, res, next){
     let errors = [];
 
     // If no updated information was provided, throw error
-    if(!info.driver && !info.status && !info.time && !info.note){
-        errors.push("No updated information found: Update-able fields include: Time, Status, Driver and Notes");
+    if(!info.driver && !info.status && !info.time && !info.note && !info.company){
+        errors.push("No updated information found: Update-able fields include: Time, Status, Driver, Company and Notes");
         errors.name = "ValidationError";
         throw errors;
     }
@@ -223,7 +223,7 @@ function bookingEdit(req, res, next){
     // by checking each key in the info object to see if its an array.
     // If there are multiple entries of the same key in a HTTP request body
     // they are formed into an array under the same key.
-    if(Array.isArray(info.driver) || Array.isArray(info.time) || Array.isArray(info.status)){
+    if(Array.isArray(info.driver) || Array.isArray(info.time) || Array.isArray(info.status) || Array.isArray(info.note) || Array.isArray(info.company)){
         errors.push("Duplicate Entries Found");
     }
 

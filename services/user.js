@@ -178,7 +178,7 @@ async function edit(editorId, userId, userInfo){
 
   // Update Availability
   if(userInfo.available){
-    user.available = available;
+    user.available = userInfo.available;
   }
 
   // Change from Driver to Customer

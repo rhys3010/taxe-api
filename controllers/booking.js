@@ -36,7 +36,7 @@ function create(req, res, next){
  * @param next
  */
 function getById(req, res, next){
-    bookingService.getById(res.locals.userId, req.params.id)
+    bookingService.getById(res.locals.userId, res.locals.userRole, req.params.id)
         .then(booking => res.status(200).json(booking))
         .catch(err => next(err));
 }
@@ -48,7 +48,7 @@ function getById(req, res, next){
  * @param next
  */
 function edit(req, res, next){
-    bookingService.edit(res.locals.userId, req.params.id, req.body)
+    bookingService.edit(res.locals.userId, res.locals.userRole, req.params.id, req.body)
         .then(() => res.status(200).json({message: "Booking Successfully Edited"}))
         .catch(err => next(err));
 }

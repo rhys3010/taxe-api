@@ -179,6 +179,17 @@ function errorHandler(error, req, res, next){
   }
 
   /**
+   * CompanyNotFoundError
+   */
+  if(error.name === "CompanyNotFoundError"){
+    return res.status(404).json({
+      "code": 15,
+      "message": "Company Not Found",
+      "description": "No Companies Could be Found"
+    });
+  }
+
+  /**
     * Default case, internal server error with details of error
    * TODO: Don't return error.message in production
   */

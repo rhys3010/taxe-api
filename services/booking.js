@@ -13,6 +13,7 @@
 const db = require('../helpers/db');
 const Booking = db.Booking;
 const User = db.User;
+const Company = db.Company;
 const mongoose = require('mongoose');
 const Status = require('../helpers/status');
 const Role = require('../helpers/role');
@@ -86,10 +87,11 @@ async function create(userId, bookingInfo){
 /**
  * Get a Booking by its ID
  * @param userId
+ * @param userRole
  * @param bookingId
  * @returns the booking or not found error
  */
-async function getById(userId, bookingId){
+async function getById(userId, userRole, bookingId){
     // Get booking by ID in mongoose and populate the 'customer' and 'driver' field with their respective names
     const booking = await Booking.findById(bookingId).populate('customer', 'name').populate('driver', 'name');
 
@@ -100,29 +102,11 @@ async function getById(userId, bookingId){
         throw error;
     }
 
-
-    // If user making the request isn't either the listed customer or driver, throw 403
-    // Note: although not ideal, driver or customer COULD be null at this point so messy if statements
-    // needed
-    // TODO: Consider moving to middleware?
-    if(!booking.customer){
+    // If user is not authed, return UnauthorizedEditError
+    if(!isUserAuthorized(booking, userId, userRole)){
         const error = new Error();
-        error.name = "UnauthorizedViewError";
+        error.name = "UnauthorizedEditError";
         throw error;
-    }
-
-    if(!booking.driver){
-        if (!booking.customer._id.equals(userId)) {
-            const error = new Error();
-            error.name = "UnauthorizedViewError";
-            throw error;
-        }
-    }else{
-        if(!booking.customer._id.equals(userId) && !booking.driver._id.equals(userId)){
-            const error = new Error();
-            error.name = "UnauthorizedViewError";
-            throw error;
-        }
     }
 
 
@@ -139,45 +123,46 @@ async function getById(userId, bookingId){
  * - Change Status
  *
  * @param editorId - The user editing's ID
+ * @param editorRole - the Role of the editing user
  * @param bookingId - The ID of the booking being editted
  * @param bookingInfo - Updated booking information
  * @returns {Promise<void>}
  */
-async function edit(editorId, bookingId, bookingInfo) {
+async function edit(editorId, editorRole, bookingId, bookingInfo) {
     // Get the booking
     const booking = await Booking.findById(bookingId);
 
     // If no booking matching that id was found, throw 404
-    if (!booking) {
+    if(!booking) {
         const error = new Error();
         error.name = "BookingNotFoundError";
         throw error;
     }
 
-    // Verify that the user editing the booking is either the customer or the driver
-    // TODO: Consider moving to middleware?
-    if(!booking.customer){
+    // If user is not authed, return UnauthorizedEditError
+    if(!isUserAuthorized(booking, editorId, editorRole)){
         const error = new Error();
         error.name = "UnauthorizedEditError";
         throw error;
     }
 
-    if(!booking.driver){
-        if (!booking.customer.equals(editorId)) {
+    // Make the edit(s)
+
+    // Update Company
+    if(bookingInfo.company){
+        // Verify that company exists
+        let company = await Company.findById(bookingInfo.company);
+        if(!company){
             const error = new Error();
-            error.name = "UnauthorizedEditError";
+            error.name = "CompanyNotFoundError";
             throw error;
         }
-    }else{
-        if (!booking.customer.equals(editorId) && !booking.driver.equals(editorId)) {
-            const error = new Error();
-            error.name = "UnauthorizedEditError";
-            throw error;
-        }
+
+        booking.company = bookingInfo.company;
     }
 
-    // Make the edit(s)
-    if (bookingInfo.driver) {
+    // Update Driver
+    if(bookingInfo.driver) {
         // Verify that driver exists
         let driver = await User.findById(bookingInfo.driver);
         if(!driver){
@@ -193,18 +178,35 @@ async function edit(editorId, bookingId, bookingInfo) {
             throw error;
         }
 
+        // TODO: Verify that driver works for owning company?
+
         booking.driver = bookingInfo.driver;
     }
 
     // Update Status
-    if (bookingInfo.status) {
+    if(bookingInfo.status) {
         // Add Note to Booking
         bookingInfo.note = "Booking Status Changed From " + booking.status + " to " + bookingInfo.status;
+        // If the booking status is being changed to 'Pending', it is being returned to the collective field
+        if(bookingInfo.status === Status.PENDING){
+            booking.company = null;
+            booking.driver = null;
+
+            // Remove any reference of this booking from the driver and company's booking records
+            await User.update(
+                {_id: booking.driver},
+                {$pull: {bookings: {_id: booking.id}}});
+
+            await Company.update(
+                {_id: booking.company},
+                {$pull: {bookings: {_id: booking.id}}});
+        }
+
         booking.status = bookingInfo.status;
     }
 
     // Update Time
-    if (bookingInfo.time) {
+    if(bookingInfo.time) {
         booking.time = bookingInfo.time;
     }
 
@@ -216,7 +218,7 @@ async function edit(editorId, bookingId, bookingInfo) {
         );
     }
 
-    // TODO: Send Notification
+    // TODO: Send Notification(s)
 
     // Commit changes to DB
     await booking.save();
@@ -243,4 +245,42 @@ function isBookingActive(booking){
     }
 
     return true;
+}
+
+/**
+ * Function to decide whether the user viewing / altering a booking
+ * is authorized to do so
+ * @param booking
+ * @param userId
+ * @param userRole
+ */
+async function isUserAuthorized(booking, userId, userRole){
+    // If the booking's status is pending:
+    // Any COMPANY ADMIN can edit/view the booking
+    // If the booking is any other status:
+    // Only customer, driver and company admin of the booking' company can edit/view
+
+    // If the user is the customer or the driver, they are authed unconditionally
+    if(userId.equals(booking.customer) || userId.equals(booking.driver)){
+        return true;
+    }
+
+    // If the status is pending, impose the relevant rules
+    if(booking.status === Status.PENDING){
+        // If the user is a company admin, auth them.
+        if(userRole === Role.Company_Admin){
+            return true;
+        }
+    }else{
+        // If status is not pending, allow company admin of the booking to
+        // view /edit
+        const user = await User.findById(userId);
+        if(user){
+            if(userRole === Role.Company_Admin && user.company === booking.company){
+                return true;
+            }
+        }
+    }
+
+    return false;
 }

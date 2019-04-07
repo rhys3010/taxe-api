@@ -22,6 +22,7 @@ const bookingSchema = mongoose.Schema({
     status: {type: String, required: true, enum: ['Pending', 'In_Progress', 'Arrived', 'Cancelled', 'Finished'], default: 'Pending'},
     customer: {type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true},
     driver: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},
+    company: {type: mongoose.Schema.Types.ObjectId, ref: 'company'},
     created_at: {type: Date, default: Date.now}
 });
 
