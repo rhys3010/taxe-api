@@ -183,28 +183,46 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
             throw error;
         }
 
+        // Remove booking from old driver's account
+        if(booking.driver){
+            // Get the old driver
+            const oldDriver = await User.findById(booking.driver);
+            if(oldDriver){
+                oldDriver.bookings.remove(bookingId);
+                await oldDriver.save();
+            }
+        }
+
+        // Add booking to driver's account
+        await User.findOneAndUpdate(
+            {_id: bookingInfo.driver},
+            {$push: {bookings: bookingId}});
+
         // TODO: Verify that driver works for owning company?
 
         booking.driver = bookingInfo.driver;
     }
 
-    // Update Status (if not customer)
-    if(bookingInfo.status && editorRole !== Role.Customer) {
+    // Update Status
+    if(bookingInfo.status) {
         // Add Note to Booking
         bookingInfo.note = "Booking Status Changed From " + booking.status + " to " + bookingInfo.status;
-        // If the booking status is being changed to 'Pending', it is being returned to the collective field
+        // If the booking status is being changed to 'Pending', it is being returned to the collective pool
         if(bookingInfo.status === Status.PENDING){
+            // Remove any reference of this booking from the driver and company's booking records
+            const driver = await User.findById(booking.driver);
+            const company = await Company.findById(booking.company);
+            if(driver){
+                driver.bookings.remove(bookingId);
+                await driver.save();
+            }
+            if(company){
+                company.bookings.remove(bookingId);
+                await booking.save();
+            }
+
             booking.company = null;
             booking.driver = null;
-
-            // Remove any reference of this booking from the driver and company's booking records
-            await User.update(
-                {_id: booking.driver},
-                {$pull: {bookings: {_id: booking.id}}});
-
-            await Company.update(
-                {_id: booking.company},
-                {$pull: {bookings: {_id: booking.id}}});
         }
 
         booking.status = bookingInfo.status;
@@ -245,11 +263,7 @@ function isBookingActive(booking){
     }
 
     // If booking is Finished or Cancelled, its inactive
-    if(booking.status === Status.FINISHED || booking.status === Status.CANCELLED){
-        return false;
-    }
-
-    return true;
+    return !(booking.status === Status.FINISHED || booking.status === Status.CANCELLED);
 }
 
 /**
