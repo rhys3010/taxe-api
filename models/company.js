@@ -1,5 +1,5 @@
 /**
- * company.js
+ * companies.js
  *
  * Define MongoDB company model
  *
@@ -17,8 +17,8 @@ const mongoose = require('mongoose');
  */
 const companySchema = mongoose.Schema({
     name: {type: String, unique: true, required: true},
-    operating: {type: Boolean, required: true, default: false},
     bookings: [{type: mongoose.Schema.Types.ObjectId, ref: 'booking'}],
+    drivers: [{type: mongoose.Schema.Types.ObjectId, ref: 'user'}],
     admins: [{type: mongoose.Schema.Types.ObjectId, ref: 'user'}],
     created_at: {type: Date, default: Date.now}
 });

@@ -10,6 +10,7 @@
 const router = require('express').Router();
 const usersRoute = require('./routes/users');
 const bookingsRoute = require('./routes/bookings');
+const companiesRoute = require('./routes/companies');
 
 /**
   * Default route, present welcome message to api
@@ -27,5 +28,10 @@ router.use('/users', usersRoute);
  * Bookings route
  */
 router.use('/bookings', bookingsRoute);
+
+/**
+ * Companies route
+ */
+router.use('/companies', companiesRoute);
 
 module.exports = router;

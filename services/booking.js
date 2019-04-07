@@ -165,6 +165,11 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
             throw error;
         }
 
+        // Add booking to company's record
+        await Company.findOneAndUpdate(
+            {_id: bookingInfo.company},
+            {$push: {bookings: bookingId}});
+
         booking.company = bookingInfo.company;
     }
 
