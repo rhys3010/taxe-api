@@ -124,6 +124,8 @@ async function getById(userId, userRole, bookingId){
  * - Change Driver
  * - Change Time
  * - Change Status
+ * - Change Company
+ * - Add Notes
  *
  * @param editorId - The user editing's ID
  * @param editorRole - the Role of the editing user

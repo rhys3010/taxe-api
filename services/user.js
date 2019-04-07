@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const User = db.User;
 const Company = db.Company;
 const auth = require('basic-auth');
+const Status = require('../helpers/status');
 const Role = require('../helpers/role');
 
 /**
@@ -209,9 +210,10 @@ async function edit(editorId, userId, userInfo){
  * @param userId
  * @param viewerId
  * @param limit
+ * @param active
  * @returns {Promise<void>}
  */
-async function getUserBookings(userId, viewerId, limit){
+async function getUserBookings(userId, viewerId, limit, active){
   // Get the user
   // TODO: Slice using mongoose so that only the *needed* bookings are retrieved
   // ^ https://github.com/Automattic/mongoose/issues/5737
@@ -245,6 +247,11 @@ async function getUserBookings(userId, viewerId, limit){
 
   // Limit the array by the number provided
   bookings = bookings.slice(0, limit);
+
+  // If user requests only active bookings, filter the list
+  if(active){
+    bookings = bookings.filter(booking => booking.status !== Status.CANCELLED && booking.status !== Status.FINISHED);
+  }
 
   // Return the list of bookings
   return bookings;

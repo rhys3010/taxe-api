@@ -110,7 +110,7 @@ function edit(req, res, next){
  * @param next
  */
 function getBookings(req, res, next){
-  userService.getUserBookings(req.params.id, res.locals.userId, req.query.limit)
+  userService.getUserBookings(req.params.id, res.locals.userId, req.query.limit, req.query.active)
       .then(bookings => res.status(200).json(bookings))
       .catch(err => next(err));
 }
