@@ -74,7 +74,7 @@ async function getCompanyBookings(companyId, viewerId, limit, active){
     }
 
     // Verify that the viewing user is a company admin for that company
-    if(!company.admins.includes(viewerId)){
+    if(!company.admins.some(admin => admin.equals(viewerId))){
         const error = new Error();
         error.name = "UnauthorizedViewError";
         throw error;

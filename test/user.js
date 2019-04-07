@@ -403,7 +403,6 @@ describe('Users', function(){
                     res.body.should.have.property('code').eql(4);
                     done();
                 });
-
         });
 
 
