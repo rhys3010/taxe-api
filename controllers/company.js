@@ -63,7 +63,7 @@ function getDrivers(req, res, next){
  */
 function addDriver(req, res, next){
     companyService.addDriver(res.locals.userId, req.params.id, req.body.driver)
-        .then(() => res.status(201).json("Driver Successfully Added"))
+        .then(() => res.status(201).json({message: "Driver Successfully Added"}))
         .catch(err => next(err));
 }
 
@@ -75,7 +75,6 @@ function addDriver(req, res, next){
  */
 function removeDriver(req, res, next){
     companyService.removeDriver(res.locals.userId, req.params.companyId, req.params.driverId)
-        .then(() => res.status(204).json("Driver Successfully Removed"))
+        .then(() => res.status(200).json({message: "Driver Successfully Removed"}))
         .catch(err => next(err));
-
 }

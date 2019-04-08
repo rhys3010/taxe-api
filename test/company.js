@@ -50,7 +50,7 @@ describe('Company', function(){
     });
 
     /**
-     * Test GET /users/:id route
+     * Test GET /companies/:id route
      */
     describe('/GET companies/:id', function(){
 
@@ -156,9 +156,9 @@ describe('Company', function(){
     });
 
     /**
-     * Test GET /users/:id/bookings route
+     * Test GET /companies/:id/bookings route
      */
-    describe('/GET users/:id/bookings', function(){
+    describe('/GET companies/:id/bookings', function(){
 
         // Attempt to get a list of bookings for a company that doesn't exist
         it('responds with 404 error and returns CompanyNotFound', function(done){
@@ -391,5 +391,610 @@ describe('Company', function(){
                     done();
                 });
         });
+    });
+
+    /**
+     * Test GET /companies/:id/drivers route
+     */
+    describe('/GET companies/:id/drivers', function(){
+
+        // Attempt to get a list of company's drivers where the company doesn't exist
+        it('responds with 404 status and returns CompanyNotFoundError', function(done){
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + mongoose.Types.ObjectId() + "/drivers")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(15);
+                    done();
+                });
+        });
+
+        // Attempt to get a list of company's drivers without being authorized
+        it('responds with 403 status and returns UnauthorizedViewError', function(done){
+
+            let companyId = mongoose.Types.ObjectId();
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(12);
+                    done();
+                });
+        });
+
+        // Attempt to get a list of company's drivers where there are none
+        it('responds with 404 status and returns NoUsersFoundError', function(done){
+
+            let companyId = mongoose.Types.ObjectId();
+            let userId = mongoose.Types.ObjectId();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "qwerty123456",
+                role: "Company_Admin",
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(4);
+                    done();
+                });
+        });
+
+        // Successfully retrieve a list of company's drivers
+        it('responds with 200 status and returns a populated list of drivers', function(done){
+            let companyId = mongoose.Types.ObjectId();
+            let driverId = mongoose.Types.ObjectId();
+            let secondDriverId = mongoose.Types.ObjectId();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                bookings: [],
+                admins: [],
+                drivers: [driverId, secondDriverId],
+                _id: companyId
+            });
+
+            company.save();
+
+            let driver = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "qwerty123456",
+                role: "Driver",
+                company: companyId,
+                _id: driverId
+            });
+
+            driver.save();
+
+            let secondaryDriver = new User({
+                email: "janedoe@gmail.com",
+                name: "Jane Doe",
+                password: "qwerty1243",
+                role: "Driver",
+                company: companyId,
+                _id: secondDriverId
+            });
+
+            secondaryDriver.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: driverId, role: driver.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.length(2);
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test PUT /companies/:id/drivers route
+     */
+    describe('/PUT companies/:id/drivers', function(){
+
+        // Attempt to add driver to company without being authorized
+        it('responds with 403 status and returns UnauthorizedViewError', function(done){
+
+            let userId = mongoose.Types.ObjectId();
+            let user = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                role: "Customer",
+                _id: userId
+            });
+
+            user.save();
+
+            let companyId = mongoose.Types.ObjectId();
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            let reqBody = {
+                driver: mongoose.Types.ObjectId(),
+            };
+
+            // Generate Token
+            let invalidToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            invalidToken = "Bearer " + invalidToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .send(reqBody)
+                .set('Authorization', invalidToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(12);
+                    done();
+                });
+        });
+
+        // Attempt to add driver to company when they're already a member
+        it('responds with 403 status and returns DriverAlreadyAddedError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: companyId,
+                role: "Driver",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let admin =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Company_Admin",
+                _id: adminId,
+            });
+
+            admin.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [adminId],
+                drivers: [driverId],
+                bookings: [],
+                _id: companyId
+
+            });
+
+            company.save();
+
+            let reqBody = {
+                driver: driverId
+            };
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(16);
+                    done();
+                });
+        });
+
+        // Attempt to add driver to company when they're already a member of another company
+        it('responds with 403 status and returns DriverAlreadyAddedError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: mongoose.Types.ObjectId(),
+                role: "Driver",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let admin =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Company_Admin",
+                _id: adminId,
+            });
+
+            admin.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [adminId],
+                drivers: [],
+                bookings: [],
+                _id: companyId
+
+            });
+
+            company.save();
+
+            let reqBody = {
+                driver: driverId
+            };
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(16);
+                    done();
+                });
+        });
+
+        // Successfully add Driver to company
+        it('responds with 200 status and returns Success Message', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: null,
+                role: "Customer",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let admin =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Company_Admin",
+                _id: adminId,
+            });
+
+            admin.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [adminId],
+                drivers: [],
+                bookings: [],
+                _id: companyId
+
+            });
+
+            company.save();
+
+            let reqBody = {
+                driver: driverId
+            };
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .set('Authorization', validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(201);
+                    res.body.should.have.property("message").eql("Driver Successfully Added");
+                    done();
+                });
+        });
+
+    });
+
+    /**
+     * Test DELETE /companies/:id/drivers route
+     */
+    describe('/DELETE companies/:id/drivers', function(){
+
+        // Attempt to remove driver from company without being authorized
+        it('responds with 403 status and returns UnauthorizedViewError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let user = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                role: "Customer",
+                _id: userId
+            });
+
+            user.save();
+
+            let companyId = mongoose.Types.ObjectId();
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let invalidToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            invalidToken = "Bearer " + invalidToken;
+
+            chai.request(app)
+                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + mongoose.Types.ObjectId())
+                .set('Authorization', invalidToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(12);
+                    done();
+                });
+        });
+
+        // Attempt to remove driver from company when they're not a member
+        it('responds with 404 status and returns NoUsersFoundError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: null,
+                role: "Customer",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let admin =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Company_Admin",
+                _id: adminId,
+            });
+
+            admin.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [adminId],
+                drivers: [],
+                bookings: [],
+                _id: companyId
+
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(4);
+                    done();
+                });
+        });
+
+        // Attempt to remove a driver from company as a driver within the company
+        it('responds with 403 status and returns UnauthorizedEditError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: null,
+                role: "Customer",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [],
+                drivers: [userId],
+                bookings: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            let user =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Driver",
+                _id: userId,
+            });
+
+            user.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Successfully remove a driver from the company as Company Admin
+        it('it responds with 200 status and returns success message', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: companyId,
+                role: "Driver",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let admin =  new User({
+                name: "Jane Bloggs",
+                email: "janebloggs@gmail.com",
+                password: "test1234",
+                companyId: companyId,
+                role: "Company_Admin",
+                _id: adminId,
+            });
+
+            admin.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [adminId],
+                drivers: [driverId],
+                bookings: [],
+                _id: companyId
+
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property("message").eql("Driver Successfully Removed");
+                    done();
+                });
+
+        });
+
+        // Successfully remove a driver from the company as the driver himself
+        it('responds with status 200 and returns a success message', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let driver = new User({
+                name: "Joe Bloggs",
+                email: "joebloggs@gmail.com",
+                password: "test1234",
+                company: companyId,
+                role: "Driver",
+                _id: driverId
+            });
+
+            driver.save();
+
+            let company = new Company({
+                name: "Taxi Co",
+                admins: [],
+                drivers: [driverId],
+                bookings: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: driverId, role: driver.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property("message").eql("Driver Successfully Removed");
+                    done();
+                });
+
+        });
+
     });
 });

@@ -163,6 +163,16 @@ async function removeDriver(userId, companyId, driverId){
         throw error;
     }
 
+    // Verify that the user is either an admin or the driver themselves
+    // (prevents drivers from removing other drivers)
+    // If the user isn't an admin and isn't the driver being removed..
+    if(!company.admins.some(admin => admin.equals(userId)) &&
+        userId !== driverId){
+        const error = new Error();
+        error.name = "UnauthorizedEditError";
+        throw error;
+    }
+
     // Verify that driver is indeed in the company
     if(!company.drivers.some(driver => driver.equals(driverId))){
         const error = new Error();
