@@ -189,6 +189,14 @@ function errorHandler(error, req, res, next){
     });
   }
 
+  if(error.name === "DriverAlreadyAddedError"){
+    return res.status(403).json({
+      "code": 16,
+      "message": "Driver Already Added",
+      "description": "The Driver is Provided is Already a Member of a Company"
+    });
+  }
+
   /**
     * Default case, internal server error with details of error
    * TODO: Don't return error.message in production

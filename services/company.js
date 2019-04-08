@@ -11,7 +11,9 @@
 
 const db = require('../helpers/db');
 const Company = db.Company;
+const User = db.User;
 const Status = require('../helpers/status');
+const Role = require('../helpers/role');
 const mongoose = require('mongoose');
 
 /**
@@ -19,7 +21,10 @@ const mongoose = require('mongoose');
  */
 module.exports = {
     getById,
-    getCompanyBookings
+    getCompanyBookings,
+    getDrivers,
+    addDriver,
+    removeDriver
 };
 
 /**
@@ -30,19 +35,7 @@ module.exports = {
 async function getById(viewerId, id){
     const company = await Company.findById(id);
 
-    // If no company exists, return 404
-    if(!company){
-        const error = new Error();
-        error.name = "CompanyNotFoundError";
-        throw error;
-    }
-
-    // Verify that the viewing user is a company admin for that company
-    if(!company.admins.some(admin => admin.equals(viewerId))){
-        const error = new Error();
-        error.name = "UnauthorizedViewError";
-        throw error;
-    }
+    authorizeRequest(viewerId, company, true);
 
     return company.toObject();
 }
@@ -59,24 +52,12 @@ async function getCompanyBookings(companyId, viewerId, limit, active){
     // Get the company record
     const company = await Company.findById(companyId).populate('bookings');
 
-    // If no company by that ID exists, throw 404
-    if(!company){
-        const error = new Error();
-        error.name = "CompanyNotFoundError";
-        throw error;
-    }
+    authorizeRequest(viewerId, company, true);
 
     // If company has no bookings
     if(company.bookings.length === 0){
         const error = new Error();
         error.name = "BookingNotFoundError";
-        throw error;
-    }
-
-    // Verify that the viewing user is a company admin for that company
-    if(!company.admins.some(admin => admin.equals(viewerId))){
-        const error = new Error();
-        error.name = "UnauthorizedViewError";
         throw error;
     }
 
@@ -95,4 +76,147 @@ async function getCompanyBookings(companyId, viewerId, limit, active){
 
     // Return the list of bookings
     return bookings;
+}
+
+/**
+ * Returns a populated list of all the company's drivers
+ * @param userId
+ * @param companyId
+ * @returns {Promise<void>}
+ */
+async function getDrivers(userId, companyId){
+    const company = await Company.findById(companyId);
+
+    authorizeRequest(userId, company, true);
+
+    // If no drivers were found, throw 404
+    if(!company.drivers.length){
+        const error = new Error();
+        error.name = "NoUsersFoundError";
+        throw error;
+    }
+
+    const companyPopulated = await Company.findById(companyId).populate('drivers', 'name');
+
+    return companyPopulated.drivers;
+}
+
+/**
+ * Add a new driver to a given company
+ * @param userId
+ * @param companyId
+ * @param driverId
+ * @returns {Promise<void>}
+ */
+async function addDriver(userId, companyId, driverId){
+    const company = await Company.findById(companyId);
+    const driver = await User.findById(driverId);
+
+    authorizeRequest(userId, company, false);
+
+    // Verify that driver exists
+    if(!driver){
+        const error = new Error();
+        error.name = "NoUsersFoundError";
+        throw error;
+    }
+
+    // Verify that driver isn't already a driver
+    if(driver.role === Role.Driver || driver.company || company.drivers.some(driver => driver.equals(driverId))){
+        const error = new Error();
+        error.name = "DriverAlreadyAddedError";
+        throw error;
+    }
+
+    // Add driver to company:
+    // Change role to Driver
+    driver.role = Role.Driver;
+
+    // Set Driver->Company to company's ID
+    driver.company = companyId;
+
+    // Add driver to company's drivers list
+    await Company.findOneAndUpdate(
+        {_id: companyId},
+        {$push: {drivers: driverId}});
+
+    await driver.save();
+}
+
+/**
+ * Remove a driver from a given company
+ * @param userId
+ * @param companyId
+ * @param driverId
+ * @returns {Promise<void>}
+ */
+async function removeDriver(userId, companyId, driverId){
+    const company = await Company.findById(companyId);
+    const driver = await User.findById(driverId);
+
+    authorizeRequest(userId, company, true);
+
+    // Verify that driver exists
+    if(!driver){
+        const error = new Error();
+        error.name = "NoUsersFoundError";
+        throw error;
+    }
+
+    // Verify that driver is indeed in the company
+    if(!company.drivers.some(driver => driver.equals(driverId))){
+        const error = new Error();
+        error.name = "NoUsersFoundError";
+        throw error;
+    }
+
+    // Remove Driver from company:
+    // Change role to Customer
+    driver.role = Role.Customer;
+
+    // Set Driver->Company to null
+    driver.company = null;
+
+    // Remove driver from company's drivers list
+    company.drivers.remove(driverId);
+
+    await company.save();
+    await driver.save();
+}
+
+////////////////////////
+// PRIVATE FUNCTIONS //
+///////////////////////
+
+/**
+ * Generic util function to verify that company does exist and that
+ * user is an admin of the company
+ * @param userId
+ * @param company
+ * @param allowDriver - Boolean whether to auth drivers or not
+ */
+function authorizeRequest(userId, company, allowDriver){
+    // If no company by that ID exists, throw 404
+    if(!company){
+        const error = new Error();
+        error.name = "CompanyNotFoundError";
+        throw error;
+    }
+
+    if(allowDriver){
+        // Verify that the viewing user is a company admin OR a driver for that company
+        if(!company.admins.some(admin => admin.equals(userId)) &&
+            !company.drivers.some(drivers => drivers.equals(userId))){
+            const error = new Error();
+            error.name = "UnauthorizedViewError";
+            throw error;
+        }
+    }else{
+        // Verify that the viewing user is a company admin for that company
+        if(!company.admins.some(admin => admin.equals(userId))){
+            const error = new Error();
+            error.name = "UnauthorizedViewError";
+            throw error;
+        }
+    }
 }

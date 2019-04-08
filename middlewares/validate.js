@@ -15,7 +15,8 @@ module.exports = {
     userEdit,
     mongoObjectId,
     bookingCreate,
-    bookingEdit
+    bookingEdit,
+    addDriver
 };
 
 /**
@@ -95,7 +96,7 @@ function userEdit(req, res, next){
     let errors = [];
 
     // If no updated password or name were provided, throw error
-    if(!info.name && !info.password && !info.available && !info.role){
+    if(!info.name && !info.password && !info.available){
         errors.push("No updated information found");
         errors.name = "ValidationError";
         throw errors;
@@ -235,6 +236,28 @@ function bookingEdit(req, res, next){
     }
 
     // If there are errors, throw them
+    if(errors.length !== 0){
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    next();
+}
+
+/**
+ * Validate input for adding a new driver
+ * @param req
+ * @param res
+ * @param next
+ */
+function addDriver(req, res, next){
+    let errors = [];
+
+    // Body should contain driver
+    if(!req.body.driver){
+        errors.push("New Driver's ID Must Be Provided")
+    }
+
     if(errors.length !== 0){
         errors.name = "ValidationError";
         throw errors;

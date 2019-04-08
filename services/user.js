@@ -182,24 +182,6 @@ async function edit(editorId, userId, userInfo){
     user.available = userInfo.available;
   }
 
-  // Change from Driver to Customer
-  // (Quit Company)
-  if(userInfo.role){
-    // If the user is currently a driver, and is trying to change to customer
-    if(userInfo.role === Role.Customer && user.role === Role.Driver){
-      // Set their role
-      user.role = Role.Customer;
-      // Remove company reference
-      user.company = null;
-      // TODO: Remove self from company via service?
-    }else{
-      // Throw role error
-      const error = new Error();
-      error.name = "InvalidRoleError";
-      throw error;
-    }
-  }
-
   // Commit changes to DB
   await user.save();
 }
