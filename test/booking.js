@@ -14,6 +14,7 @@ const should = chai.should();
 const jwt = require('jsonwebtoken');
 const User = require('../helpers/db').User;
 const Booking = require('../helpers/db').Booking;
+const Company = require('../helpers/db').Company;
 const URI_PREFIX = "/api/v1";
 const config = require('../config');
 const mongoose = require('mongoose');
@@ -38,6 +39,9 @@ describe('Bookings', function(){
     // Before each test, empty out the Bookings database
     beforeEach((done) => {
         Booking.remove({}, (err) => {
+        });
+
+        Company.remove({}, (err) => {
         });
 
         User.remove({}, (err) => {
@@ -734,6 +738,217 @@ describe('Bookings', function(){
                     done();
                 });
         });
+    });
 
+    /**
+     * Test PATCH /bookings/:id/claim route
+     * (Claim Booking)
+     */
+    describe('/PATCH bookings/:id/claim', function(){
+        // Attempt to claim a booking that doesn't exist
+        it('responds with status 404 and returns BookingNotFoundEroor', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            let reqBody = {
+                company: companyId
+            };
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + mongoose.Types.ObjectId() + "/claim")
+                .set("Authorization", validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(10);
+                    done();
+                });
+        });
+
+        // Attempt to claim a booking without providing company ID
+        it('responds with status 400 and returns a ValidationError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.PENDING,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/claim")
+                .set("Authorization", validToken)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.have.property('code').eql(7);
+                    done();
+                });
+        });
+
+        // Attempt to claim a booking that is already claimed by another company
+        it('responds with status 403 and returns UnauthorizedEditError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                company: mongoose.Types.ObjectId(),
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            let reqBody = {
+                company: companyId
+            };
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/claim")
+                .set("Authorization", validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Successfully claim a booking
+        it('responds with status 403 and returns UnauthorizedEditError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.PENDING,
+                company: mongoose.Types.ObjectId(),
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            let reqBody = {
+                company: companyId
+            };
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/claim")
+                .set("Authorization", validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property('message').eql("Booking Successfully Claimed");
+                    done();
+                });
+        });
     });
 });
