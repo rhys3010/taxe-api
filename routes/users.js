@@ -41,11 +41,11 @@ router.post('/login', userController.authenticate);
 router.get('/:id', [authenticateToken, validate.mongoObjectId], userController.getById);
 
 /**
-  * PUT /users/:id
+  * PATCH /users/:id
   * Edit individual user record
   * Middleware: Auth, Validate (Mongo Object Id and User Edit)
 */
-router.put('/:id', [authenticateToken, validate.mongoObjectId, validate.userEdit], userController.edit);
+router.patch('/:id', [authenticateToken, validate.mongoObjectId, validate.userEdit], userController.edit);
 
 /**
  * GET /users/:id/bookings

@@ -529,9 +529,9 @@ describe('Company', function(){
     });
 
     /**
-     * Test PUT /companies/:id/drivers route
+     * Test PATCH /companies/:id/drivers route
      */
-    describe('/PUT companies/:id/drivers', function(){
+    describe('/PATCH companies/:id/drivers', function(){
 
         // Attempt to add driver to company without being authorized
         it('responds with 403 status and returns UnauthorizedViewError', function(done){
@@ -567,7 +567,7 @@ describe('Company', function(){
             invalidToken = "Bearer " + invalidToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers")
                 .send(reqBody)
                 .set('Authorization', invalidToken)
                 .end((err, res) => {
@@ -625,7 +625,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers")
                 .set('Authorization', validToken)
                 .send(reqBody)
                 .end((err, res) => {
@@ -683,7 +683,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers")
                 .set('Authorization', validToken)
                 .send(reqBody)
                 .end((err, res) => {
@@ -741,7 +741,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/companies/" + companyId + "/drivers")
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers")
                 .set('Authorization', validToken)
                 .send(reqBody)
                 .end((err, res) => {
@@ -754,9 +754,9 @@ describe('Company', function(){
     });
 
     /**
-     * Test DELETE /companies/:id/drivers route
+     * Test PATCH /companies/:id/drivers route
      */
-    describe('/DELETE companies/:id/drivers', function(){
+    describe('/PATCH companies/:id/drivers', function(){
 
         // Attempt to remove driver from company without being authorized
         it('responds with 403 status and returns UnauthorizedViewError', function(done){
@@ -787,7 +787,7 @@ describe('Company', function(){
             invalidToken = "Bearer " + invalidToken;
 
             chai.request(app)
-                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + mongoose.Types.ObjectId())
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers/" + mongoose.Types.ObjectId())
                 .set('Authorization', invalidToken)
                 .end((err, res) => {
                     res.should.have.status(403);
@@ -840,7 +840,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
                 .set('Authorization', validToken)
                 .end((err, res) => {
                     res.should.have.status(404);
@@ -892,7 +892,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
                 .set('Authorization', validToken)
                 .end((err, res) => {
                     res.should.have.status(403);
@@ -945,7 +945,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
                 .set('Authorization', validToken)
                 .end((err, res) => {
                     res.should.have.status(200);
@@ -986,7 +986,7 @@ describe('Company', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .delete(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
+                .patch(URI_PREFIX + "/companies/" + companyId + "/drivers/" + driverId)
                 .set('Authorization', validToken)
                 .end((err, res) => {
                     res.should.have.status(200);

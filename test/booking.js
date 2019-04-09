@@ -403,10 +403,10 @@ describe('Bookings', function(){
     });
 
     /**
-     * Test PUT /bookings route
+     * Test PATCH /bookings route
      * (Update Booking)
      */
-    describe('/PUT bookings', function(){
+    describe('/PATCH bookings', function(){
 
         // Attempt to edit booking that doesn't belong to you
         it('responds with 403 error and returns an error', function(done){
@@ -433,7 +433,7 @@ describe('Bookings', function(){
             };
 
             chai.request(app)
-                .put(URI_PREFIX + "/bookings/" + bookingId)
+                .patch(URI_PREFIX + "/bookings/" + bookingId)
                 .set('Authorization', token)
                 .send(bookingEdit)
                 .end((err, res) => {
@@ -453,7 +453,7 @@ describe('Bookings', function(){
             let bookingId = mongoose.Types.ObjectId();
 
             chai.request(app)
-                .put(URI_PREFIX + "/bookings/" + bookingId)
+                .patch(URI_PREFIX + "/bookings/" + bookingId)
                 .set("Authorization", token)
                 .send(bookingEdits)
                 .end((err, res) => {
@@ -499,7 +499,7 @@ describe('Bookings', function(){
             let bookingEdits = {};
 
             chai.request(app)
-                .put(URI_PREFIX + "/bookings/" + validBookingId)
+                .patch(URI_PREFIX + "/bookings/" + validBookingId)
                 .set("Authorization", validToken)
                 .send(bookingEdits)
                 .end((err, res) => {
@@ -546,7 +546,7 @@ describe('Bookings', function(){
             };
 
             chai.request(app)
-                .put(URI_PREFIX + "/bookings/" + validBookingId)
+                .patch(URI_PREFIX + "/bookings/" + validBookingId)
                 .set("Authorization", validToken)
                 .send(bookingEdits)
                 .end((err, res) => {
@@ -610,7 +610,7 @@ describe('Bookings', function(){
             };
 
             chai.request(app)
-                .put(URI_PREFIX + "/bookings/" + validBookingId)
+                .patch(URI_PREFIX + "/bookings/" + validBookingId)
                 .set("Authorization", validToken)
                 .send(bookingEdits)
                 .end((err, res) => {

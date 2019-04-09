@@ -596,10 +596,10 @@ describe('Users', function(){
     });
 
     /**
-     * Test PUT /users/:id route
+     * Test PATCH /users/:id route
      * (Edit User)
      */
-    describe('/PUT users/:id', function(){
+    describe('/PATCH users/:id', function(){
 
         // Create mongoose ID to apply to user
         let templateUserId = mongoose.Types.ObjectId();
@@ -630,7 +630,7 @@ describe('Users', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .send(userEdits)
                 .end((err, res) => {
                     res.should.have.status(401);
@@ -653,7 +653,7 @@ describe('Users', function(){
             let searchId = mongoose.Types.ObjectId();
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + searchId)
+                .patch(URI_PREFIX + "/users/" + searchId)
                 .set("Authorization", token)
                 .send(userEdits)
                 .end((err, res) => {
@@ -674,7 +674,7 @@ describe('Users', function(){
             user.save();
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .set("Authorization", token)
                 .send(userEdits)
                 .end((err, res) => {
@@ -698,7 +698,7 @@ describe('Users', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .set("Authorization", validToken)
                 .send(userEdits)
                 .end((err, res) => {
@@ -726,7 +726,7 @@ describe('Users', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .set("Authorization", validToken)
                 .send(userEdits)
                 .end((err, res) => {
@@ -754,7 +754,7 @@ describe('Users', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .set("Authorization", validToken)
                 .send(userEdits)
                 .end((err, res) => {
@@ -783,7 +783,7 @@ describe('Users', function(){
             validToken = "Bearer " + validToken;
 
             chai.request(app)
-                .put(URI_PREFIX + "/users/" + userTemplate._id)
+                .patch(URI_PREFIX + "/users/" + userTemplate._id)
                 .set("Authorization", validToken)
                 .send(userEdits)
                 .end((err, res) => {

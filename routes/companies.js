@@ -34,18 +34,18 @@ router.get('/:id/bookings', [authenticateToken, validate.mongoObjectId], company
 router.get('/:id/drivers', [authenticateToken, validate.mongoObjectId], companyController.getDrivers);
 
 /**
- * PUT /companies/:id/drivers
+ * PATCH /companies/:id/drivers
  * Adds a new driver to the company's drivers list
  * Middleware: Auth, Validate (Mongo Object Id)
  */
-router.put('/:id/drivers', [authenticateToken, validate.mongoObjectId, validate.addDriver], companyController.addDriver);
+router.patch('/:id/drivers', [authenticateToken, validate.mongoObjectId, validate.addDriver], companyController.addDriver);
 
 /**
- * DELETE /companies/:companyId/drivers/:driverId
- * Removes a driver from teh company's drivers list
+ * PATCH /companies/:companyId/drivers/:driverId
+ * Removes a driver from the company's drivers list
  * Middleware: Auth
  */
-router.delete('/:companyId/drivers/:driverId', authenticateToken, companyController.removeDriver);
+router.patch('/:companyId/drivers/:driverId', authenticateToken, companyController.removeDriver);
 
 module.exports = router;
 

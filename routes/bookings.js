@@ -30,10 +30,10 @@ router.post('/', [authenticateToken, validate.bookingCreate, authorizeRole(Role.
 router.get('/:id', [authenticateToken, validate.mongoObjectId], bookingController.getById);
 
 /**
- * PUT /bookings/:id
+ * PATCH /bookings/:id
  * Edit individual booking
  * Middleware: Auth, Validate (Mongo Object Id and Booking Edit)
  */
-router.put('/:id', [authenticateToken, validate.mongoObjectId, validate.bookingEdit], bookingController.edit);
+router.patch('/:id', [authenticateToken, validate.mongoObjectId, validate.bookingEdit], bookingController.edit);
 
 module.exports = router;
