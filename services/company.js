@@ -190,7 +190,7 @@ async function removeDriver(userId, companyId, driverId){
     driver.role = Role.Customer;
 
     // Set Driver->Company to null
-    driver.company = null;
+    driver.company = undefined;
 
     // Remove driver from company's drivers list
     company.drivers.remove(driverId);

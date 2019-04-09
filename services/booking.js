@@ -342,9 +342,9 @@ async function releaseBooking(userId, bookingId){
     booking.status = Status.PENDING;
 
     // Set booking's company to null
-    booking.company = null;
+    booking.company = undefined;
     // Set booking's driver to null
-    booking.driver = null;
+    booking.driver = undefined;
 
     // Remove booking reference from driver's account (if exists)
     if(driver){
