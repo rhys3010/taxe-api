@@ -231,7 +231,7 @@ async function getUnallocatedBookings(){
     const bookings = await Booking.find({status: Status.PENDING});
 
     // If no bookings were found return 404
-    if(!bookings.length){
+    if(bookings.length === 0){
         const error = new Error();
         error.name = "BookingNotFoundError";
         throw error;

@@ -18,6 +18,7 @@ const URI_PREFIX = "/api/v1";
 const config = require('../config');
 const mongoose = require('mongoose');
 const Status = require('../helpers/status');
+const Role = require('../helpers/role');
 
 chai.use(chaiHttp);
 
@@ -41,6 +42,120 @@ describe('Bookings', function(){
 
         User.remove({}, (err) => {
             done();
+        });
+    });
+
+    /**
+     * Test GET /bookings route
+     */
+    describe('/GET bookings', function(){
+        // Attempt to view all unallocated bookings with invalid role
+        it('responds with 403 status and returns InvalidRoleError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Customer,
+                _id: userId
+            });
+
+            user.save();
+
+            // Generate Token
+            let invalidToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            invalidToken = "Bearer " + invalidToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/bookings")
+                .set("Authorization", invalidToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(13);
+                    done();
+
+                });
+        });
+
+        // Attempt to view all unallocated bookings where there are none
+        it('responds with 404 status and returns BookingNotFoundError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                _id: userId
+            });
+
+            user.save();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/bookings")
+                .set("Authorization", validToken)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(10);
+                    done();
+                });
+        });
+
+        // Successfully view all unallocated bookings
+        it('responds with status 200 and returns a list of all unallocated bookings', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                _id: userId
+            });
+
+            user.save();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/bookings")
+                .set("Authorization", validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.length(1);
+                    done();
+                });
         });
     });
 

@@ -379,5 +379,5 @@ function isValidTime(input){
  * @param input
  */
 function isValidStatus(input){
-    return input === Status.PENDING;
+    return input !== Status.PENDING;
 }
