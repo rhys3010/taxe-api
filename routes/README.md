@@ -2,17 +2,26 @@
 
 ## Routes ##
 
-| URL                  | HTTP Method  | Functionality                           |
-|:--------------------:|:------------:|:---------------------------------------:|
-| /users               | GET          | [Retrieve All Users](#getAllUsers)      |
-| /users               | POST         | [Create User](#newUser)                 |
-| /users/:id           | GET          | [Retrieve User](#getUser)               |
-| /users/:id           | PUT          | [Update User](#updateUser)              |
-| /users/login         | POST         | [Retrieve Access Token](#login)         |
-| /users/:id/bookings  | GET          | [Retrieve User's Bookings](#getBookings)|
-| /bookings            | POST         | [Create Booking](#newBooking)           |
-| /bookings/:id        | GET          | [Retrieve Booking](#getBooking)         |
-| /bookings/:id        | PUT          | [Update Booking](#updateBooking)        |
+| URL                         | HTTP Method  | Functionality                                                |
+|:----------------------------|:-------------|:-------------------------------------------------------------|
+| /users                      | GET          | [Retrieve All Users](#getAllUsers)                           |
+| /users                      | POST         | [Create User](#newUser)                                      |
+| /users/:id                  | GET          | [Retrieve User](#getUser)                                    |
+| /users/:id                  | PATCH        | [Update User](#updateUser)                                   |
+| /users/login                | POST         | [Retrieve Access Token](#login)                              |
+| /users/:id/bookings         | GET          | [Retrieve User's Bookings](#getBookings)                     |
+| /bookings                   | GET          | [Retrieve all Unallocated Bookings](#getUnallocatedBookings) |
+| /bookings                   | POST         | [Create Booking](#newBooking)                                |
+| /bookings/:id               | GET          | [Retrieve Booking](#getBooking)                              |
+| /bookings/:id               | PATCH        | [Update Booking](#updateBooking)                             |
+| /bookings/:id/claim         | PATCH        | [Claim an Unallocated Booking](#claimBooking)                |
+| /bookings/:id/release       | PATCH        | [Release a Booking](#releaseBooking)                         |
+| /companies/:id              | GET          | [Retrieve Company](#getCompany)                              |
+| /companies/:id/bookings     | GET          | [Retrieve Company's Bookings](#getCompanyBookings)          |
+| /companies/:id/drivers      | GET          | [Retrieve Company's Drivers](#getDrivers)                   |
+| /companies/:id/drivers      | PATCH        | [Add Driver to Company](#addDriver)                         |
+| /companies/:id/drivers/:id  | PATCH        | [Remove Driver from Company](#removeDriver)                 |
+
 
 
 ### <a name="getAllUsers"></a> Retrieve All Users ###
@@ -76,13 +85,16 @@ N/A
     "name": "John Doe",
     "__v": 0,
     "created_at": "2019-03-03T23:32:23.298Z",
+    "available": false,
+    "bookings": [],
+    "company": null,
     "role": "Customer"
 }
 ```
 
 ### <a name="updateUser"></a> Update User ###
 
-Updates a user's name or password based on the user ID passed as a parameter.
+Updates a user's record based on the user ID passed as a parameter.
 
 #### Request Headers ####
 | Attribute                 | Description                        |
@@ -95,6 +107,7 @@ Updates a user's name or password based on the user ID passed as a parameter.
 | ```name```                | (optional) the user's new full name    |
 | ```password```            | (optional) the user's new password     |
 | ```old_password```        | (optional) the user's old password     |
+| ```availability```        | (optional) the driver's availability   |
 
 
 ### <a name="login"></a> Retrieve Access Token ###
@@ -150,19 +163,77 @@ N/A
         "__v": 0,
         "created_at": "2019-03-26T23:50:59.567Z",
         "status": "Pending",
+        "company": "5c9a41819e3ed800077f7c86",
+        "driver": "5c9abae34b5cee00080eeae7",
         "id": "5c9abae34b5cee00080eeae7"
     },
     {
-        "_id": "5c9a83359e3dd800077f7c76",
-        "pickup_location": "Bethesda",
-        "destination": "Bangor",
-        "time": "2019-03-26T21:05:13.000Z",
+        "_id": "5caca7e6d13e6d0007f68658",
+        "pickup_location": "Fferm Penglais Block 17",
+        "destination": "Aberystwyth Golf Club",
+        "time": "2019-04-09T16:37:49.926Z",
         "no_passengers": 1,
+        "customer": "5caa0ec58a006e0007573de6",
+        "__v": 0,
+        "company": null,
+        "driver": null,
+        "created_at": "2019-04-09T14:10:46.442Z",
+        "status": "Pending",
+        "notes": [
+            "Booking Claimed by: Taxi Co",
+            "Booking Released"
+        ],
+        "id": "5caca7e6d13e6d0007f68658"
+    }
+]
+```
+
+### <a name="getUnallocatedBookings"></a> Retrieve all Unallocated Bookings ###
+
+Retrieves a list of the all unallocated bookings, viewable by Company Admins
+
+#### Request Headers ####
+| Attribute                 | Description                           |
+|:-------------------------:|:-------------------------------------:|
+| ```Authorization```       | (required) the authorization token    |
+
+#### Request Body ####
+N/A
+
+#### Example Response ####
+```
+[
+    {
+        "_id": "5c9abae34b5cee00080eeae7",
+        "pickup_location": "Aberystwyth Pier",
+        "destination": "Cwrt Mawr",
+        "time": "2019-03-27T00:50:42.000Z",
+        "no_passengers": 2,
         "customer": "5c8ee3eae99c4400079f87bb",
         "__v": 0,
-        "created_at": "2019-03-26T19:53:25.991Z",
-        "status": "Cancelled",
-        "id": "5c9a83359e3dd800077f7c76"
+        "created_at": "2019-03-26T23:50:59.567Z",
+        "status": "Pending",
+        "company": "",
+        "driver": "5c9abae34b5cee00080eeae7",
+        "id": "5c9abae34b5cee00080eeae7"
+    },
+    {
+        "_id": "5caca7e6d13e6d0007f68658",
+        "pickup_location": "Fferm Penglais Block 17",
+        "destination": "Aberystwyth Golf Club",
+        "time": "2019-04-09T16:37:49.926Z",
+        "no_passengers": 1,
+        "customer": "5caa0ec58a006e0007573de6",
+        "__v": 0,
+        "company": null,
+        "driver": null,
+        "created_at": "2019-04-09T14:10:46.442Z",
+        "status": "Pending",
+        "notes": [
+            "Booking Claimed by: Taxi Co",
+            "Booking Released"
+        ],
+        "id": "5caca7e6d13e6d0007f68658"
     }
 ]
 ```
@@ -213,7 +284,7 @@ N/A
 
 ### <a name="updateBooking"></a> Update Booking ###
 
-Updates a booking's status, time or driver based on the booking ID as a parameter
+Updates a booking's record based on the booking ID as a parameter
 
 #### Request Headers ####
 | Attribute                 | Description                        |
@@ -226,6 +297,178 @@ Updates a booking's status, time or driver based on the booking ID as a paramete
 | ```status```              | (optional) the new status of the booking    |
 | ```time```                | (optional) the new time of the booking      |
 | ```driver```              | (optional) the new driver of the booking    |
+| ```note```                | (optional) a new note for the booking       |
+
+### <a name="claimBooking"></a> Claim an Unallocated Booking ###
+
+As a Company Admin, claim an unallocated booking for your company
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+#### Request Body ####
+| Attribute                 | Description                                 |
+|:-------------------------:|:-------------------------------------------:|
+| ```company```              | (required) the ID of the company           |
+
+### <a name="claimBooking"></a> Release a Booking ###
+
+As a Company Admin or Booking Driver, release a booking back to the unallocated pool.
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+#### Request Body ####
+N/A
+
+### <a name="getCompany"></a> Retrieve a Company ###
+
+Retrieves a Company's record.
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+### Request Body ###
+N/A
+
+#### Example Response ####
+```
+{
+    "_id": "5caa3e8ca6c086b4686bcc37",
+    "name": "Taxi Co",
+    "__v": 5,
+    "created_at": "2019-04-07T18:16:44.359Z",
+    "admins": [
+        "5caa3e5dde3576000871cf3a"
+    ],
+    "drivers": [
+        "5caa0b3d2ff74f00072e67ea"
+    ],
+    "bookings": []
+}
+```
+
+### <a name="getCompanyBookings"></a> Retrieve a Company's Bookings ###
+
+Retrieves a list of a Company's Bookings
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+### Request Body ###
+N/A
+
+### Example Response ###
+```
+[
+    {
+        "_id": "5caca7e6d13e6d0007f68658",
+        "pickup_location": "Fferm Penglais Block 17",
+        "destination": "Aberystwyth Golf Club",
+        "time": "2019-04-09T16:37:49.926Z",
+        "no_passengers": 1,
+        "customer": "5caa0ec58a006e0007573de6",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "driver": null,
+        "created_at": "2019-04-09T14:10:46.442Z",
+        "status": "In_Progress",
+        "notes": [
+            "Booking Claimed by: Taxi Co",
+            "Booking Released",
+            "Booking Claimed by: Taxi Co"
+        ],
+        "id": "5caca7e6d13e6d0007f68658"
+    },
+    {
+        "_id": "5caca7e6d13e6d0007f68658",
+        "pickup_location": "Cwrt Mawr",
+        "destination": "Aberystwyth University",
+        "time": "2019-04-09T16:37:49.926Z",
+        "no_passengers": 1,
+        "customer": "5caa0ec58a006e0007573de6",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "driver": null,
+        "created_at": "2019-04-09T14:10:46.442Z",
+        "status": "Cancelled",
+        "notes": [
+            "Booking Claimed by: Taxi Co",
+            "Booking Released",
+            "Booking Claimed by: Taxi Co"
+        ],
+        "id": "5caca7e6d13e6d0007f68658"
+        }
+]
+```
+
+### <a name="getDrivers"></a> Retrieve a Company's Drivers ###
+
+Retrieves a list of a Company's employed Drivers
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+### Request Body ###
+N/A
+
+### Example Response ###
+```
+[
+    {
+        "_id": "5caa0b3d2ff74f00072e67ea",
+        "name": "Rhys Evans",
+        "id": "5caa0b3d2ff74f00072e67ea"
+    },
+    {
+        "_id": "5caa3e8ca6c086b4686bcc37",
+        "name": "John Doe",
+        "id": "5caa3e8ca6c086b4686bcc37"
+    }
+]
+```
+
+### <a name="addDriver"></a> Add a Driver to a Company ###
+
+Add a driver to a company's record.
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+### Request Body ###
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```driver```              | (required) the driver to add       |
+
+### <a name="removeDriver"></a> Remove a Driver from a Company ###
+
+Remove a driver to a company's record.
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+
+
+
+
+
+
+
+
 
 ## Errors ##
 
@@ -327,6 +570,19 @@ Thrown if a user attempts to log in with an invalid or missing Basic Auth string
 |:----------:|:------------------:|
 | 14         | 401 (Unauthorized) |
 
+### CompanyNotFoundError ###
+Thrown if a company could not be found within the database
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 15         | 404 (Not Found)    |
+
+### DriverAlreadyAddedError ###
+Thrown if a Company Admin attempts to add a driver to a company, when the driver is already employed.
+
+| Code       | HTTP Status        |
+|:----------:|:------------------:|
+| 16         | 404 (Forbidden)    |
 
 
 

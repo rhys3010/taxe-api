@@ -41,12 +41,8 @@ If using a config file, rename 'config.sample.json' to 'config.json', then input
 ## Tests
 Run all chai tests in mocha environment using the following command
 ```shell
-npm run-script test
+npm test
 ```
 
 ## Api Reference ##
 https://github.com/rhys3010/taxe-api/blob/master/routes/README.md
-
-
-## Database ##
-Coming Soon

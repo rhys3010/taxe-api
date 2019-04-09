@@ -1,5 +1,23 @@
 # Changelog
-All notable changes to the API will ibe documented in this file .
+All notable changes to the API will be documented in this file .
+
+## [0.3.0] - 2019-04-09
+### Added
+- Role based access control
+- Support for companies: model, controller, service, routes, and tests
+- Company admins can view and claim unallocated bookings, release bookings, add and remove drivers and allocate drivers to bookings
+- GET /bookings/ route to view all unallocated bookings
+- New Errors to support all company related routes
+
+### Updated
+- User model to support drivers (availability and company fields)
+- Booking model to keep track of the booking's company
+- Booking model to make notes an array
+- All PUT routes are now PATCH routes
+- Drivers can no longer create bookings
+- root README.md file for updated Tax-E icon
+- /routes/README.md file to reflect changes to the API
+- This file
 
 ## [0.2.1] - 2019-03-26
 ### Updated
