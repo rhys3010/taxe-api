@@ -904,7 +904,6 @@ describe('Bookings', function(){
                 time: new Date(),
                 no_passengers: 1,
                 status: Status.PENDING,
-                company: mongoose.Types.ObjectId(),
                 customer: mongoose.Types.ObjectId(),
                 _id: bookingId
             });
@@ -947,6 +946,232 @@ describe('Bookings', function(){
                 .end((err, res) => {
                     res.should.have.status(200);
                     res.body.should.have.property('message').eql("Booking Successfully Claimed");
+                    done();
+                });
+        });
+    });
+
+    /**
+     * Test PATCH /bookings/:id/release route
+     * (RElease Booking)
+     */
+    describe('/PATCH bookings/:id/release', function(){
+
+        // Attempt to release a booking that is still Pending
+        it('responds with status 403 and returns UnauthorizedEditError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.PENDING,
+                company: mongoose.Types.ObjectId(),
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/release")
+                .set("Authorization", validToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Attempt to release a booking that doesn't belong to you
+        it('responds with status 403 and returns UnauthorizedEditError', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                company: mongoose.Types.ObjectId(),
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/release")
+                .set("Authorization", validToken)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Successfully release a booking as the company admin
+        it('responds with status 200 and returns Success Message', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                company: companyId,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [userId],
+                bookings: [bookingId],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            let reqBody = {
+                company: companyId
+            };
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/release")
+                .set("Authorization", validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property('message').eql("Booking Successfully Released");
+                    done();
+                });
+
+
+        });
+
+        // Successfully release a booking as the driver
+        it('responds with status 200 and returns Success Message', function(done){
+            let userId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                company: companyId,
+                driver: userId,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let user = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Driver,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [],
+                bookings: [bookingId],
+                drivers: [userId],
+                _id: companyId
+            });
+
+            company.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            let reqBody = {
+                company: companyId
+            };
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId + "/release")
+                .set("Authorization", validToken)
+                .send(reqBody)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property('message').eql("Booking Successfully Released");
                     done();
                 });
         });
