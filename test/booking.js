@@ -675,6 +675,176 @@ describe('Bookings', function(){
                 });
         });
 
+        // Attempt to edit a booking with invalid status
+        it('responds with 400 status and returns ValidationError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                status: Status.IN_PROGRESS,
+                driver: driverId,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let driver = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                bookings: [bookingId],
+                role: Role.Driver,
+                _id: driverId
+            });
+
+            driver.save();
+
+            let updatedBooking = {
+                status: Status.PENDING
+            };
+
+            // Generate token based on user
+            let validToken = jwt.sign({sub: driverId, role: 'Driver'}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId)
+                .set("Authorization", validToken)
+                .send(updatedBooking)
+                .end((err, res) => {
+                    res.should.have.status(400);
+                    res.body.should.have.property('code').eql(7);
+                    done();
+                });
+        });
+
+        // Attempt to allocate booking to a driver that isn't in the company
+        it('responds with 403 status and returns UnauthorizedEditError', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let userId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "janedoe@gmail.com",
+                name: "Jane Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                company: companyId,
+                status: Status.IN_PROGRESS,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let driver = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Driver,
+                company: mongoose.Types.ObjectId(),
+                _id: driverId
+            });
+
+            driver.save();
+
+            let updatedBooking = {
+                driver: driverId
+            };
+
+            // Generate token based on user
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId)
+                .set("Authorization", validToken)
+                .send(updatedBooking)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(9);
+                    done();
+                });
+        });
+
+        // Successfully allocate booking to driver
+        it('responds with 200 status and returns Success Message', function(done){
+            let driverId = mongoose.Types.ObjectId();
+            let bookingId = mongoose.Types.ObjectId();
+            let companyId = mongoose.Types.ObjectId();
+            let userId = mongoose.Types.ObjectId();
+
+            let user = new User({
+                email: "janedoe@gmail.com",
+                name: "Jane Doe",
+                password: "testing123",
+                role: Role.Company_Admin,
+                company: companyId,
+                _id: userId
+            });
+
+            user.save();
+
+            let booking = new Booking({
+                pickup_location: "Fferm Penglais",
+                destination: "Borth",
+                time: new Date(),
+                no_passengers: 1,
+                company: companyId,
+                status: Status.IN_PROGRESS,
+                customer: mongoose.Types.ObjectId(),
+                _id: bookingId
+            });
+
+            booking.save();
+
+            let driver = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "testing123",
+                role: Role.Driver,
+                company: companyId,
+                _id: driverId
+            });
+
+            driver.save();
+
+            let updatedBooking = {
+                driver: driverId
+            };
+
+            // Generate token based on user
+            let validToken = jwt.sign({sub: userId, role: user.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .patch(URI_PREFIX + "/bookings/" + bookingId)
+                .set("Authorization", validToken)
+                .send(updatedBooking)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.property('message').eql("Booking Successfully Edited");
+                    done();
+                });
+        });
+
         // Attempt successful edit
         it('responds with 200 status and returns success message', function(done){
             // Create a user and a booking in that user's name

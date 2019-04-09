@@ -168,10 +168,10 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
             throw error;
         }
 
-        // Verify that driver is actually a driver
-        if(driver.role !== Role.Driver){
+        // Verify that driver is actually a driver and is in the company
+        if(driver.role !== Role.Driver || !driver.company.equals(booking.company)){
             const error = new Error();
-            error.name = "InvalidRoleError";
+            error.name = "UnauthorizedEditError";
             throw error;
         }
 
@@ -189,8 +189,6 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
         await User.findOneAndUpdate(
             {_id: bookingInfo.driver},
             {$push: {bookings: bookingId}});
-
-        // TODO: Verify that driver works for owning company?
 
         booking.driver = bookingInfo.driver;
     }
