@@ -25,7 +25,10 @@ const Role = require('../helpers/role');
 module.exports = {
     create,
     getById,
-    edit
+    edit,
+    getUnallocatedBookings,
+    claimBooking,
+    releaseBooking
 };
 
 
@@ -155,24 +158,6 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
 
     // Make the edit(s)
 
-    // Update Company
-    if(bookingInfo.company && editorRole !== Role.Customer){
-        // Verify that company exists
-        let company = await Company.findById(bookingInfo.company);
-        if(!company){
-            const error = new Error();
-            error.name = "CompanyNotFoundError";
-            throw error;
-        }
-
-        // Add booking to company's record
-        await Company.findOneAndUpdate(
-            {_id: bookingInfo.company},
-            {$push: {bookings: bookingId}});
-
-        booking.company = bookingInfo.company;
-    }
-
     // Update Driver
     if(bookingInfo.driver && editorRole !== Role.Customer) {
         // Verify that driver exists
@@ -214,24 +199,6 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
     if(bookingInfo.status) {
         // Add Note to Booking
         bookingInfo.note = "Booking Status Changed From " + booking.status + " to " + bookingInfo.status;
-        // If the booking status is being changed to 'Pending', it is being returned to the collective pool
-        if(bookingInfo.status === Status.PENDING){
-            // Remove any reference of this booking from the driver and company's booking records
-            const driver = await User.findById(booking.driver);
-            const company = await Company.findById(booking.company);
-            if(driver){
-                driver.bookings.remove(bookingId);
-                await driver.save();
-            }
-            if(company){
-                company.bookings.remove(bookingId);
-                await booking.save();
-            }
-
-            booking.company = null;
-            booking.driver = null;
-        }
-
         booking.status = bookingInfo.status;
     }
 
@@ -252,6 +219,147 @@ async function edit(editorId, editorRole, bookingId, bookingInfo) {
 
     // Commit changes to DB
     await booking.save();
+}
+
+/**
+ * Returns a list of all the bookings that are currently 'unallocated'
+ * (their status are pending)
+ * @returns {Promise<void>}
+ */
+async function getUnallocatedBookings(){
+    // Get all bookings with status 'pending'
+    const bookings = await Booking.find({status: Status.PENDING});
+
+    // If no bookings were found return 404
+    if(!bookings.length){
+        const error = new Error();
+        error.name = "BookingNotFoundError";
+        throw error;
+    }
+
+    return bookings;
+}
+
+/**
+ * Allow company admins to claim a specific booking for their own company
+ * @param userId
+ * @param bookingId
+ * @param companyId
+ * @returns {Promise<void>}
+ */
+async function claimBooking(userId, bookingId, companyId){
+    // Verify that booking exists
+    const booking = await Booking.findById(bookingId);
+    if(!booking){
+        const error = new Error();
+        error.name = "BookingNotFoundError";
+        throw error;
+    }
+
+    // Verify that booking is UNALLOCATED
+    if(booking.status !== Status.PENDING){
+        const error = new Error();
+        error.name = "UnauthorizedEditError";
+        throw error;
+    }
+
+    // Verify that company exists
+    const company = await Company.findById(companyId);
+    if(!company){
+        const error = new Error();
+        error.name = "CompanyNotFoundError";
+        throw error;
+    }
+
+    // Verify that user is an admin of the booking
+    if(!company.admins.some(admin => admin.equals(userId))){
+        const error = new Error();
+        error.name = "UnauthorizedEditError";
+        throw error;
+    }
+
+    // Set booking's status to 'In Progress'
+    booking.status = Status.IN_PROGRESS;
+
+    // Set booking's company to company
+    booking.company = companyId;
+
+    // Add booking to company's record
+    await Company.findOneAndUpdate(
+        {_id: companyId},
+        {$push: {bookings: bookingId}});
+
+    // Add note to Booking
+    await Booking.findOneAndUpdate(
+        {_id: booking.id},
+        {$push: {notes: "Booking Claimed by: " + company.name}}
+    );
+
+
+    await booking.save();
+}
+
+/**
+ * Allow Company Admins and Drivers to release a booking back to the collective
+ * unallocated pool
+ * @param userId
+ * @param bookingId
+ * @returns {Promise<void>}
+ */
+async function releaseBooking(userId, bookingId){
+    // Verify that the booking exists
+    const booking = await Booking.findById(bookingId);
+    const user = await User.findById(userId);
+
+    if(!booking){
+        const error = new Error();
+        error.name = "BookingNotFoundError";
+        throw error;
+    }
+
+    // Verify that user is authorized to release the booking
+    if(!isUserAuthorized(booking, user) || booking.status === Status.PENDING){
+        const error = new Error();
+        error.name = "UnauthorizedEditError";
+        throw error;
+    }
+
+    // Get the company responsible for the booking
+    const company = await Company.findById(booking.company);
+
+    // Check if the user releasing the booking is the booking's driver
+    let driver;
+    if(user._id.equals(booking.driver)){
+        driver = user;
+    }else{
+        driver = await User.findById(booking.driver);
+    }
+
+    // Set Booking status
+    booking.status = Status.PENDING;
+
+    // Set booking's company to null
+    booking.company = null;
+    // Set booking's driver to null
+    booking.driver = null;
+
+    // Remove booking reference from driver's account (if exists)
+    if(driver){
+        driver.bookings.remove(bookingId);
+        await driver.save();
+    }
+
+    // Remove booking reference from company's account
+    company.bookings.remove(bookingId);
+
+    // Add note to Booking
+    await Booking.findOneAndUpdate(
+        {_id: booking.id},
+        {$push: {notes: "Booking Released"}}
+    );
+
+    await booking.save();
+    await company.save();
 }
 
 
@@ -280,9 +388,6 @@ function isBookingActive(booking){
  * @param user
  */
 function isUserAuthorized(booking, user){
-    // If the booking's status is pending:
-    // Any COMPANY ADMIN can edit/view the booking
-    // If the booking is any other status:
     // Only customer, driver and company admin of the booking' company can edit/view
 
     if(!user){
@@ -294,18 +399,9 @@ function isUserAuthorized(booking, user){
         return true;
     }
 
-    // If the status is pending, impose the relevant rules
-    if(booking.status === Status.PENDING){
-        // If the user is a company admin, auth them.
-        if(user.role === Role.Company_Admin){
-            return true;
-        }
-    }else{
-        // If status is not pending, allow company admin of the booking to
-        // view /edit
-        if(user.role === Role.Company_Admin && user.company === booking.company){
-            return true;
-        }
+    // If the user is an Admin of the booking's company
+    if(user.role === Role.Company_Admin && user.company.equals(booking.company)){
+        return true;
     }
 
     return false;

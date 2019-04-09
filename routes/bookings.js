@@ -16,6 +16,13 @@ const authorizeRole = require('../middlewares/authorizeRole');
 const Role = require('../helpers/role');
 
 /**
+ * GET /bookings/
+ * Returns a list of all unallocated bookings
+ * Middleware: Auth, AuthorizeRole (Company Admin)
+ */
+router.get('/', [authenticateToken, authorizeRole(Role.Company_Admin)], bookingController.getUnallocatedBookings);
+
+/**
  * POST /bookings
  * Create a new booking
  * Middleware: Auth, Validate, AuthorizeRole (Customer)
@@ -35,5 +42,19 @@ router.get('/:id', [authenticateToken, validate.mongoObjectId], bookingControlle
  * Middleware: Auth, Validate (Mongo Object Id and Booking Edit)
  */
 router.patch('/:id', [authenticateToken, validate.mongoObjectId, validate.bookingEdit], bookingController.edit);
+
+/**
+ * PATCH /bookings/:id/claim
+ * Allow Company Admins to claim a booking
+ * Middleware: Auth, Validate (Mongo Object ID, Claim Booking), Authorize Role (Company Admin)
+ */
+router.patch('/:id/claim', [authenticateToken, validate.mongoObjectId, validate.claimBooking, authorizeRole(Role.Company_Admin)], bookingController.claimBooking);
+
+/**
+ * PATCH /bookings/:id/release
+ * Allow Company Admins to release a boooking
+ * Middleware: Auth, Validate (Mongo Object ID), Authorize Role (Company Admin, Driver)
+ */
+router.patch('/:id/release', [authenticateToken, validate.mongoObjectId, authorizeRole([Role.Company_Admin, Role.Driver])], bookingController.releaseBooking);
 
 module.exports = router;

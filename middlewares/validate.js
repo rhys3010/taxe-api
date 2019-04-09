@@ -7,6 +7,7 @@
  * */
 
 const mongoose = require('mongoose');
+const Status = require('../helpers/status');
 
 'use strict';
 
@@ -16,7 +17,8 @@ module.exports = {
     mongoObjectId,
     bookingCreate,
     bookingEdit,
-    addDriver
+    addDriver,
+    claimBooking
 };
 
 /**
@@ -214,8 +216,8 @@ function bookingEdit(req, res, next){
     let errors = [];
 
     // If no updated information was provided, throw error
-    if(!info.driver && !info.status && !info.time && !info.note && !info.company){
-        errors.push("No updated information found: Update-able fields include: Time, Status, Driver, Company and Notes");
+    if(!info.driver && !info.status && !info.time && !info.note){
+        errors.push("No updated information found: Update-able fields include: Time, Status, Driver, and Notes");
         errors.name = "ValidationError";
         throw errors;
     }
@@ -224,7 +226,7 @@ function bookingEdit(req, res, next){
     // by checking each key in the info object to see if its an array.
     // If there are multiple entries of the same key in a HTTP request body
     // they are formed into an array under the same key.
-    if(Array.isArray(info.driver) || Array.isArray(info.time) || Array.isArray(info.status) || Array.isArray(info.note) || Array.isArray(info.company)){
+    if(Array.isArray(info.driver) || Array.isArray(info.time) || Array.isArray(info.status) || Array.isArray(info.note)){
         errors.push("Duplicate Entries Found");
     }
 
@@ -232,6 +234,13 @@ function bookingEdit(req, res, next){
     if(info.time){
         if(!isValidTime(info.time)){
             errors.push("Booking time cannot be in the past, further than " + MAX_HOURS_FUTURE + " hours away, or sooner than " + MIN_MINUTES_NOTICE + " minutes away");
+        }
+    }
+
+    // Make sure that the status is valid
+    if(info.status){
+        if(!isValidStatus(info.status)){
+            errors.push("Booking Status cannot be set to 'Pending', for this use the Booking Release Route.")
         }
     }
 
@@ -256,6 +265,28 @@ function addDriver(req, res, next){
     // Body should contain driver
     if(!req.body.driver){
         errors.push("New Driver's ID Must Be Provided")
+    }
+
+    if(errors.length !== 0){
+        errors.name = "ValidationError";
+        throw errors;
+    }
+
+    next();
+}
+
+/**
+ * Validate input for claiming a booking
+ * @param req
+ * @param res
+ * @param next
+ */
+function claimBooking(req, res, next){
+    let errors = [];
+
+    // Body should contain driver
+    if(!req.body.company){
+        errors.push("Company's ID Must Be Provided")
     }
 
     if(errors.length !== 0){
@@ -340,4 +371,13 @@ function isValidTime(input){
     }
 
     return true;
+}
+
+/**
+ * Util function to evaluate whether a provided status meets the following requirements:
+ * - Cannot be changed TO pending
+ * @param input
+ */
+function isValidStatus(input){
+    return input === Status.PENDING;
 }
