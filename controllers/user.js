@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Rhys Evans
+ * All Rights Reserved
+ */
+
 /**
   * user.js
   * Controller class for user, all needed function to route

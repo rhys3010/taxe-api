@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Rhys Evans
+ * All Rights Reserved
+ */
+
 /**
  * user.js
  * All user related test (specifically the /users/) route

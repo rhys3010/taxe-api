@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Rhys Evans
+ * All Rights Reserved
+ */
+
 /**
   * error-handler.js
   * Middleware to catch errors and return detailed description

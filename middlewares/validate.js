@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Rhys Evans
+ * All Rights Reserved
+ */
+
 /**
  * validate.js
  * Validation middleware to check HTTP requests are valid (duh)

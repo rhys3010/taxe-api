@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Rhys Evans
+ * All Rights Reserved
+ */
+
 /**
   * authenticateToken.js
   * Authentication middleware to verify and validate user's
