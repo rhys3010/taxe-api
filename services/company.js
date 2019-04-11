@@ -17,6 +17,7 @@
 const db = require('../helpers/db');
 const Company = db.Company;
 const User = db.User;
+const Booking = db.Booking;
 const Status = require('../helpers/status');
 const Role = require('../helpers/role');
 const mongoose = require('mongoose');
@@ -194,6 +195,23 @@ async function removeDriver(userId, companyId, driverId){
 
     // Remove driver from company's drivers list
     company.drivers.remove(driverId);
+
+    // Remove driver from all of their ACTIVE bookings
+    const populatedDriver = await User.findById(driverId).populate('bookings');
+    const bookings = populatedDriver.bookings;
+
+    for(let i = 0; i < bookings.length; i++){
+        // If the booking is active, remove:
+        if(bookings[i].status !== Status.FINISHED && bookings[i].status !== Status.CANCELLED){
+            // Remove driver from the booking
+            let booking = await Booking.findById(bookings[i].id);
+            booking.driver = undefined;
+            booking.save();
+
+            // Remove the booking from the driver's list
+            driver.bookings.remove(bookings[i].id);
+        }
+    }
 
     await company.save();
     await driver.save();
