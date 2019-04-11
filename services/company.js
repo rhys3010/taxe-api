@@ -206,7 +206,7 @@ async function removeDriver(userId, companyId, driverId){
             // Remove driver from the booking
             let booking = await Booking.findById(bookings[i].id);
             booking.driver = undefined;
-            booking.save();
+            await booking.save();
 
             // Remove the booking from the driver's list
             driver.bookings.remove(bookings[i].id);

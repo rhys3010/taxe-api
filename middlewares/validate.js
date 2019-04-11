@@ -103,14 +103,16 @@ function userEdit(req, res, next){
     let errors = [];
 
     // If no updated password or name were provided, throw error
-    if(!info.name && !info.password && !info.available){
+    // Note: using (x in y) for available key as it is a boolean and using !info.available
+    // would be a boolean expression
+    if(!info.name && !info.password && !('available' in info)){
         errors.push("No updated information found");
         errors.name = "ValidationError";
         throw errors;
     }
 
     // Make sure there aren't any duplicate fields
-    if(Array.isArray(info.name) || Array.isArray(info.password)){
+    if(Array.isArray(info.name) || Array.isArray(info.password) || Array.isArray(info.available)){
         errors.push("Duplicate Entries Found");
     }
 
