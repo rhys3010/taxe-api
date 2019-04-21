@@ -133,12 +133,12 @@ async function getAdmins(userId, companyId){
  * Add a new driver to a given company
  * @param userId
  * @param companyId
- * @param driverId
+ * @param driverEmail
  * @returns {Promise<void>}
  */
-async function addDriver(userId, companyId, driverId){
+async function addDriver(userId, companyId, driverEmail){
     const company = await Company.findById(companyId);
-    const driver = await User.findById(driverId);
+    const driver = await User.findOne({"email": driverEmail});
 
     authorizeRequest(userId, company, false);
 
@@ -150,7 +150,7 @@ async function addDriver(userId, companyId, driverId){
     }
 
     // Verify that driver isn't already a driver
-    if(driver.role === Role.Driver || driver.company || company.drivers.some(driver => driver.equals(driverId))){
+    if(driver.role === Role.Driver || driver.company || company.drivers.some(driver => driver.equals(driver.id))){
         const error = new Error();
         error.name = "DriverAlreadyAddedError";
         throw error;
@@ -166,7 +166,7 @@ async function addDriver(userId, companyId, driverId){
     // Add driver to company's drivers list
     await Company.findOneAndUpdate(
         {_id: companyId},
-        {$push: {drivers: driverId}});
+        {$push: {drivers: driver.id}});
 
     await driver.save();
 }

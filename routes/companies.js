@@ -50,7 +50,7 @@ router.get('/:id/admins', [authenticateToken, validate.mongoObjectId], companyCo
  * Adds a new driver to the company's drivers list
  * Middleware: Auth, Validate (Mongo Object Id)
  */
-router.patch('/:id/drivers', [authenticateToken, validate.mongoObjectId, validate.addDriver], companyController.addDriver);
+router.patch('/:id/drivers', [authenticateToken, validate.addDriver], companyController.addDriver);
 
 /**
  * PATCH /companies/:companyId/drivers/:driverId

@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to the API will be documented in this file .
 
+## [0.3.1] - 2019-04-21
+### Added
+- GET /companies/:id/admins route to view all of a company's admins
+
+### Updated
+- GET /companies/:id/drivers route now returns a fully populated list of drivers
+- PATCH /companies/:id/drivers now takes a user's email as a parameter as opposed to ID, to support
+adding drivers by their email (for web client).
+
 ## [0.3.0] - 2019-04-09
 ### Added
 - Role based access control

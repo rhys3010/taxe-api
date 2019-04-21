@@ -17,10 +17,11 @@
 | /bookings/:id/claim         | PATCH        | [Claim an Unallocated Booking](#claimBooking)                |
 | /bookings/:id/release       | PATCH        | [Release a Booking](#releaseBooking)                         |
 | /companies/:id              | GET          | [Retrieve Company](#getCompany)                              |
-| /companies/:id/bookings     | GET          | [Retrieve Company's Bookings](#getCompanyBookings)          |
-| /companies/:id/drivers      | GET          | [Retrieve Company's Drivers](#getDrivers)                   |
-| /companies/:id/drivers      | PATCH        | [Add Driver to Company](#addDriver)                         |
-| /companies/:id/drivers/:id  | PATCH        | [Remove Driver from Company](#removeDriver)                 |
+| /companies/:id/bookings     | GET          | [Retrieve Company's Bookings](#getCompanyBookings)           |
+| /companies/:id/admins       | GET          | [Retrieve Company's Admins](#getCompanyAdmins)               |
+| /companies/:id/drivers      | GET          | [Retrieve Company's Drivers](#getDrivers)                    |
+| /companies/:id/drivers      | PATCH        | [Add Driver to Company](#addDriver)                          |
+| /companies/:id/drivers/:id  | PATCH        | [Remove Driver from Company](#removeDriver)                  |
 
 
 
@@ -410,6 +411,48 @@ N/A
 ]
 ```
 
+### <a name="getCompanyAdmins"></a> Retrieve a Company's Admins ###
+
+Retrieves a list of a Company's Admins
+
+#### Request Headers ####
+| Attribute                 | Description                        |
+|:-------------------------:|:----------------------------------:|
+| ```Authorization```       | (required) the authorization token |
+
+### Request Body ###
+N/A
+
+### Example Response ###
+```
+[
+    {
+        "_id": "5caa3e5dde3576000871cf3a",
+        "email": "janedoe@gmail.com",
+        "name": "Jane Doe",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "created_at": "2019-04-07T18:15:57.045Z",
+        "available": false,
+        "bookings": [],
+        "role": "Company_Admin",
+        "id": "5caa3e5dde3576000871cf3a"
+    },
+    {
+        "_id": "5caa0b3d2ff74f00072e67ea",
+        "email": "rhys301097@gmail.com",
+        "name": "Rhys Evans",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "created_at": "2019-04-07T18:15:57.045Z",
+        "available": false,
+        "bookings": [],
+        "role": "Company_Admin",
+        "id": "5caa0b3d2ff74f00072e67ea"
+    },
+]
+```
+
 ### <a name="getDrivers"></a> Retrieve a Company's Drivers ###
 
 Retrieves a list of a Company's employed Drivers
@@ -426,15 +469,29 @@ N/A
 ```
 [
     {
-        "_id": "5caa0b3d2ff74f00072e67ea",
-        "name": "Rhys Evans",
-        "id": "5caa0b3d2ff74f00072e67ea"
+        "_id": "5caa3e5dde3576000871cf3a",
+        "email": "janedoe@gmail.com",
+        "name": "Jane Doe",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "created_at": "2019-04-07T18:15:57.045Z",
+        "available": true,
+        "bookings": [],
+        "role": "Driver",
+        "id": "5caa3e5dde3576000871cf3a"
     },
     {
-        "_id": "5caa3e8ca6c086b4686bcc37",
-        "name": "John Doe",
-        "id": "5caa3e8ca6c086b4686bcc37"
-    }
+        "_id": "5caa0b3d2ff74f00072e67ea",
+        "email": "rhys301097@gmail.com",
+        "name": "Rhys Evans",
+        "__v": 0,
+        "company": "5caa3e8ca6c086b4686bcc37",
+        "created_at": "2019-04-07T18:15:57.045Z",
+        "available": true,
+        "bookings": [],
+        "role": "Driver",
+        "id": "5caa0b3d2ff74f00072e67ea"
+    },
 ]
 ```
 
@@ -460,14 +517,6 @@ Remove a driver to a company's record.
 | Attribute                 | Description                        |
 |:-------------------------:|:----------------------------------:|
 | ```Authorization```       | (required) the authorization token |
-
-
-
-
-
-
-
-
 
 
 ## Errors ##

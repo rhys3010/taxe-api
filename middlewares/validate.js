@@ -271,7 +271,7 @@ function addDriver(req, res, next){
 
     // Body should contain driver
     if(!req.body.driver){
-        errors.push("New Driver's ID Must Be Provided")
+        errors.push("New Driver's Email Must Be Provided")
     }
 
     if(errors.length !== 0){

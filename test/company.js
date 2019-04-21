@@ -534,13 +534,106 @@ describe('Company', function(){
     });
 
     /**
+     * Test GET /companies/:id/admins route
+     */
+    describe('/GET companies/:id/admins', function(){
+
+        // Attempt to get a list of company's admins where the company doesn't exist
+        it('responds with 404 status and returns CompanyNotFoundError', function(done){
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + mongoose.Types.ObjectId() + "/admins")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(404);
+                    res.body.should.have.property('code').eql(15);
+                    done();
+                });
+        });
+
+        // Attempt to get a list of company's admins without being authorized
+        it('responds with 403 status and returns UnauthorizedViewError', function(done){
+
+            let companyId = mongoose.Types.ObjectId();
+            let company = new Company({
+                name: "Generic Taxi Co",
+                admins: [],
+                bookings: [],
+                drivers: [],
+                _id: companyId
+            });
+
+            company.save();
+
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + companyId + "/admins")
+                .set('Authorization', token)
+                .end((err, res) => {
+                    res.should.have.status(403);
+                    res.body.should.have.property('code').eql(12);
+                    done();
+                });
+        });
+
+        // Successfully retrieve a list of company's admins
+        it('responds with 200 status and returns a populated list of admins', function(done){
+            let companyId = mongoose.Types.ObjectId();
+            let adminId = mongoose.Types.ObjectId();
+            let secondAdminId = mongoose.Types.ObjectId();
+
+            let company = new Company({
+                name: "Generic Taxi Co",
+                bookings: [],
+                drivers: [],
+                admins: [adminId, secondAdminId],
+                _id: companyId
+            });
+
+            company.save();
+
+            let admin = new User({
+                email: "johndoe@gmail.com",
+                name: "John Doe",
+                password: "qwerty123456",
+                role: "Company_Admin",
+                company: companyId,
+                _id: adminId
+            });
+
+            admin.save();
+
+            let secondAdmin = new User({
+                email: "janedoe@gmail.com",
+                name: "Jane Doe",
+                password: "qwerty1243",
+                role: "Company_Admin",
+                company: companyId,
+                _id: secondAdminId
+            });
+
+            secondAdmin.save();
+
+            // Generate Token
+            let validToken = jwt.sign({sub: adminId, role: admin.role}, config.jwtSecret, {expiresIn: 600});
+            validToken = "Bearer " + validToken;
+
+            chai.request(app)
+                .get(URI_PREFIX + "/companies/" + companyId + "/admins")
+                .set('Authorization', validToken)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.have.length(2);
+                    done();
+                });
+        });
+    });
+
+    /**
      * Test PATCH /companies/:id/drivers route
      */
     describe('/PATCH companies/:id/drivers', function(){
 
         // Attempt to add driver to company without being authorized
         it('responds with 403 status and returns UnauthorizedViewError', function(done){
-
             let userId = mongoose.Types.ObjectId();
             let user = new User({
                 name: "Joe Bloggs",
@@ -564,7 +657,7 @@ describe('Company', function(){
             company.save();
 
             let reqBody = {
-                driver: mongoose.Types.ObjectId(),
+                driver: user.email
             };
 
             // Generate Token
@@ -622,7 +715,7 @@ describe('Company', function(){
             company.save();
 
             let reqBody = {
-                driver: driverId
+                driver: driver.email
             };
 
             // Generate Token
@@ -680,7 +773,7 @@ describe('Company', function(){
             company.save();
 
             let reqBody = {
-                driver: driverId
+                driver: driver.email
             };
 
             // Generate Token
@@ -738,7 +831,7 @@ describe('Company', function(){
             company.save();
 
             let reqBody = {
-                driver: driverId
+                driver: driver.email
             };
 
             // Generate Token
@@ -759,9 +852,9 @@ describe('Company', function(){
     });
 
     /**
-     * Test PATCH /companies/:id/drivers route
+     * Test PATCH /companies/:id/drivers/:id route
      */
-    describe('/PATCH companies/:id/drivers', function(){
+    describe('/PATCH companies/:id/drivers/:id', function(){
 
         // Attempt to remove driver from company without being authorized
         it('responds with 403 status and returns UnauthorizedViewError', function(done){
