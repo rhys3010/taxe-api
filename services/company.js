@@ -29,6 +29,7 @@ module.exports = {
     getById,
     getCompanyBookings,
     getDrivers,
+    getAdmins,
     addDriver,
     removeDriver
 };
@@ -102,9 +103,30 @@ async function getDrivers(userId, companyId){
         throw error;
     }
 
-    const companyPopulated = await Company.findById(companyId).populate('drivers', 'name');
-
+    const companyPopulated = await Company.findById(companyId).populate('drivers', '-password');
     return companyPopulated.drivers;
+}
+
+/**
+ * Returns a populated list of all the company's admins
+ * @param userId
+ * @param companyId
+ * @returns {Promise<*>}
+ */
+async function getAdmins(userId, companyId){
+    const company = await Company.findById(companyId);
+
+    authorizeRequest(userId, company, false);
+
+    // If no admins were found, throw 404
+    if(!company.admins.length){
+        const error = new Error();
+        error.name = "NoUsersFoundError";
+        throw error;
+    }
+
+    const companyPopulated = await Company.findById(companyId).populate('admins', '-password');
+    return companyPopulated.admins;
 }
 
 /**

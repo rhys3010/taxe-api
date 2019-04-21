@@ -33,10 +33,17 @@ router.get('/:id/bookings', [authenticateToken, validate.mongoObjectId], company
 
 /**
  * GET /companies/:id/drivers
- * Retrieves a list of all the company's driverrs
+ * Retrieves a list of all the company's drivers
  * Middleware: Auth, Validate (Mongo Object Id)
  */
 router.get('/:id/drivers', [authenticateToken, validate.mongoObjectId], companyController.getDrivers);
+
+/**
+ * GET /companies/:id/admins
+ * Retrieves a list of all the company's admins
+ * Middleware: Auth, Validate (Mongo Object Id)
+ */
+router.get('/:id/admins', [authenticateToken, validate.mongoObjectId], companyController.getAdmins);
 
 /**
  * PATCH /companies/:id/drivers

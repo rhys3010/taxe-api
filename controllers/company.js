@@ -20,6 +20,7 @@ module.exports = {
     getById,
     getBookings,
     getDrivers,
+    getAdmins,
     addDriver,
     removeDriver
 };
@@ -57,6 +58,18 @@ function getBookings(req, res, next){
 function getDrivers(req, res, next){
     companyService.getDrivers(res.locals.userId, req.params.id)
         .then(drivers => res.status(200).json(drivers))
+        .catch(err => next(err));
+}
+
+/**
+ * Returns a list of all the company's admins
+ * @param req
+ * @param res
+ * @param next
+ */
+function getAdmins(req, res, next){
+    companyService.getAdmins(res.locals.userId, req.params.id)
+        .then(admins => res.status(200).json(admins))
         .catch(err => next(err));
 }
 
